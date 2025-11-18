@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pitch2D - Video Processing</title>
-    <meta name="description" content="Process football videos with AI-powered analysis">
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3"></script>
+    <title>Pitch2D - Home</title>
+    <meta name="description" content="AI-powered football video analysis">
     <style>
         * {
             margin: 0;
@@ -19,6 +17,8 @@
             background: linear-gradient(135deg, #0a1828 0%, #1a2332 50%, #253341 100%);
             color: #ffffff;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .navbar {
@@ -89,65 +89,48 @@
 
         .container {
             max-width: 1600px;
-            margin: 6rem auto 2rem;
+            margin: 0 auto;
             padding: 2rem;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .upload-section {
+        .hero-section {
+            text-align: center;
+            padding: 4rem;
             background: rgba(255, 255, 255, 0.04);
             backdrop-filter: blur(10px);
-            border: 3px dashed rgba(0, 212, 255, 0.3);
-            border-radius: 25px;
-            padding: 4rem;
-            text-align: center;
-            transition: all 0.4s ease;
-            margin-bottom: 2rem;
+            border-radius: 30px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            max-width: 800px;
+            animation: fadeIn 1s ease-out;
         }
 
-        .upload-section.dragover {
-            background: rgba(0, 212, 255, 0.08);
-            border-color: #00ff88;
-            transform: scale(1.02);
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .upload-icon {
-            font-size: 5rem;
+        .hero-title {
+            font-size: 3.5rem;
             margin-bottom: 1.5rem;
-            animation: float 3s ease-in-out infinite;
+            background: linear-gradient(45deg, #ffffff, #b0e0e6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-
-        .upload-section h2 {
-            font-size: 2.2rem;
-            margin-bottom: 1rem;
-            color: #00d4ff;
-            font-weight: 700;
-        }
-
-        .upload-section p {
+        .hero-subtitle {
+            font-size: 1.4rem;
             color: #b0e0e6;
-            margin-bottom: 2.5rem;
-            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            line-height: 1.6;
         }
 
-        .file-input-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-
-        .file-input {
-            opacity: 0;
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-
-        .file-label {
+        .cta-btn {
             display: inline-block;
             padding: 1.2rem 3.5rem;
             background: linear-gradient(45deg, #00d4ff, #00ff88);
@@ -157,291 +140,44 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
-            font-size: 1.1rem;
+            font-size: 1.3rem;
+            text-decoration: none;
         }
 
-        .file-label:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(0, 212, 255, 0.5);
+        .cta-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.5);
         }
 
-        .processing-section {
-            display: none;
-            background: rgba(255, 255, 255, 0.04);
-            backdrop-filter: blur(10px);
-            border-radius: 25px;
-            padding: 3rem;
-            margin-bottom: 2rem;
-        }
-
-        .processing-section.active {
-            display: block;
-        }
-
-        .processing-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .processing-header h2 {
-            color: #00d4ff;
-            font-size: 2rem;
-            font-weight: 700;
-        }
-
-        .spinner {
-            width: 30px;
-            height: 30px;
-            border: 3px solid rgba(0, 212, 255, 0.2);
-            border-top-color: #00d4ff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .progress-container {
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 15px;
-            overflow: hidden;
-            margin: 1.5rem 0;
-            height: 35px;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #00d4ff, #00ff88);
-            width: 0%;
-            transition: width 0.5s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            color: #0a1828;
-            font-size: 0.95rem;
-        }
-
-        .status-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 1.5rem 0;
-            padding: 1rem;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-        }
-
-        .status-label {
-            color: #00d4ff;
-            font-weight: 600;
-        }
-
-        .status-value {
-            color: #b0e0e6;
-        }
-
-        .status-logs {
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 15px;
-            padding: 1.5rem;
-            max-height: 250px;
-            overflow-y: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 0.95rem;
-            margin-top: 1.5rem;
-        }
-
-        .log-entry {
-            padding: 0.4rem 0;
-            color: #b0e0e6;
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .log-entry.success { color: #00ff88; }
-        .log-entry.error { color: #ff4444; }
-        .log-entry.info { color: #00d4ff; }
-        .log-entry.warning { color: #ffaa00; }
-
-        .log-time {
-            color: #6a8090;
-            min-width: 70px;
-        }
-
-        .results-section {
-            display: none;
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 2rem;
+            margin-top: 4rem;
         }
 
-        .results-section.active {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .video-panel, .canvas-panel {
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 20px;
-            padding: 2rem;
-            backdrop-filter: blur(10px);
-        }
-
-        .panel-header {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .panel-header h3 {
-            color: #00d4ff;
-            font-size: 1.6rem;
-            font-weight: 600;
-        }
-
-        video, canvas {
-            width: 100%;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        #pitch2d {
-            background: #1a472a;
-            border: 2px solid rgba(255, 255, 255, 0.8);
-        }
-
-        .controls {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .control-btn {
-            padding: 0.9rem 2rem;
-            background: rgba(0, 212, 255, 0.15);
-            border: 2px solid rgba(0, 212, 255, 0.5);
-            color: #00d4ff;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;
-        }
-
-        .control-btn:hover:not(:disabled) {
-            background: #00d4ff;
-            color: #0a1828;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
-        }
-
-        .control-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        .control-btn.primary {
-            background: linear-gradient(45deg, #00d4ff, #00ff88);
-            color: #0a1828;
-            border: none;
-        }
-
-        .control-btn.primary:disabled {
-            background: rgba(0, 212, 255, 0.2);
-            color: rgba(255, 255, 255, 0.3);
-        }
-
-        .timer-warning {
-            background: rgba(255, 68, 68, 0.08);
-            border: 2px solid rgba(255, 68, 68, 0.4);
-            border-radius: 12px;
-            padding: 1.2rem;
-            margin-top: 1.5rem;
-            text-align: center;
-            color: #ff6b6b;
-            font-weight: 600;
-        }
-
-        .timer-warning.critical {
-            animation: pulse 1.5s ease infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .stats-panel {
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 20px;
-            padding: 2rem;
-            margin-top: 2rem;
-            backdrop-filter: blur(10px);
-        }
-
-        .stats-panel h3 {
-            color: #00d4ff;
-            font-size: 1.6rem;
-            margin-bottom: 1.5rem;
-            font-weight: 600;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .stat-card {
-            background: rgba(0, 0, 0, 0.3);
+        .feature-card {
+            background: rgba(0, 0, 0, 0.2);
             padding: 1.5rem;
-            border-radius: 12px;
-            text-align: center;
-            border-left: 4px solid #00d4ff;
-            transition: all 0.3s ease;
+            border-radius: 15px;
+            border-top: 3px solid #00d4ff;
         }
 
-        .stat-card:hover {
-            transform: translateY(-3px);
-            background: rgba(0, 0, 0, 0.4);
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
         }
 
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: 800;
+        .feature-title {
             color: #00ff88;
-            margin-bottom: 0.3rem;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
         }
 
-        .stat-label {
+        .feature-desc {
             color: #b0e0e6;
-            font-size: 0.95rem;
-            font-weight: 500;
-        }
-
-        #tempCanvas {
-            display: none;
-        }
-
-        @media (max-width: 1024px) {
-            .results-section.active {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-            
-            .upload-section {
-                padding: 2rem;
-            }
+            font-size: 0.9rem;
         }
     </style>
 </head>
@@ -465,656 +201,36 @@
             <div class="logo-text">Pitch2D</div>
         </div>
         <div class="nav-buttons">
-            <a href="index.html" class="nav-btn">Home</a>
-            <a href="processor.html" class="nav-btn active">Processing</a>
+            <a href="index.html" class="nav-btn active">Home</a>
+            <a href="processor.html" class="nav-btn">Processing</a>
         </div>
     </nav>
 
     <div class="container">
-        <div id="uploadSection" class="upload-section">
-            <div class="upload-icon">🎥</div>
-            <h2>Upload Football Video</h2>
-            <p>Drag and drop your file here or click to select<br>
-            Accepted formats: MP4, AVI, MOV, WebM (max 500MB)</p>
-            <div class="file-input-wrapper">
-                <input type="file" id="videoFile" class="file-input" accept="video/mp4,video/avi,video/mov,video/webm">
-                <label for="videoFile" class="file-label">Select Video File</label>
-            </div>
-        </div>
+        <div class="hero-section">
+            <h1 class="hero-title">AI Football Analysis</h1>
+            <p class="hero-subtitle">Transform match footage into tactical 2D data.<br>Detect players, referees, and ball movement instantly using Computer Vision.</p>
+            
+            <a href="processor.html" class="cta-btn">Start New Analysis</a>
 
-        <div id="processingSection" class="processing-section">
-            <div class="processing-header">
-                <div class="spinner"></div>
-                <h2>Processing Video...</h2>
-            </div>
-            <div class="progress-container">
-                <div id="progressBar" class="progress-bar">0%</div>
-            </div>
-            <div class="status-info">
-                <span class="status-label">Current Stage:</span>
-                <span id="currentStatus" class="status-value">Initializing...</span>
-            </div>
-            <div class="status-logs" id="statusLogs"></div>
-        </div>
-
-        <div id="resultsSection" class="results-section">
-            <div class="video-panel">
-                <div class="panel-header">
-                    <span style="font-size: 1.8rem;">📹</span>
-                    <h3>Original Video</h3>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <div class="feature-title">Object Detection</div>
+                    <div class="feature-desc">Identifies players, referees, and the ball with high precision using COCO-SSD.</div>
                 </div>
-                <video id="originalVideo" controls></video>
-                <div class="controls">
-                    <button class="control-btn" id="playBtn">▶️ Play</button>
-                    <button class="control-btn" id="pauseBtn">⏸️ Pause</button>
-                    <button class="control-btn" id="restartBtn">🔄 Restart</button>
+                <div class="feature-card">
+                    <div class="feature-icon">🗺️</div>
+                    <div class="feature-title">2D Mapping</div>
+                    <div class="feature-desc">Converts video perspective into a top-down 2D tactical view.</div>
                 </div>
-            </div>
-
-            <div class="canvas-panel">
-                <div class="panel-header">
-                    <span style="font-size: 1.8rem;">🎯</span>
-                    <h3>2D Visualization</h3>
-                </div>
-                <canvas id="pitch2d" width="1000" height="700"></canvas>
-                <div class="controls">
-                    <button class="control-btn primary" id="downloadBtn" disabled>💾 Download 2D Video</button>
-                    <button class="control-btn" id="resetBtn">🔄 New Analysis</button>
-                </div>
-                <div class="timer-warning" id="timerWarning">
-                    ⏱️ Time remaining: <span id="timeLeft">30:00</span><br>
-                    <span style="font-size: 0.9rem;">Session will close automatically. Download before timeout!</span>
-                </div>
-            </div>
-        </div>
-
-        <div id="statsPanel" class="stats-panel" style="display: none;">
-            <h3>📊 Analysis Statistics</h3>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="playersDetected">0</div>
-                    <div class="stat-label">Players Detected</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="refereesDetected">0</div>
-                    <div class="stat-label">Referees Detected</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="ballDetections">0</div>
-                    <div class="stat-label">Ball Detections</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="framesProcessed">0</div>
-                    <div class="stat-label">Frames Processed</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="processingTime">0s</div>
-                    <div class="stat-label">Processing Time</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="accuracy">0%</div>
-                    <div class="stat-label">Detection Confidence</div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-title">Live Statistics</div>
+                    <div class="feature-desc">Real-time tracking data and exportable video analysis.</div>
                 </div>
             </div>
         </div>
     </div>
-
-    <canvas id="tempCanvas" width="640" height="480"></canvas>
-
-    <script>
-        // ==================== GLOBAL VARIABLES ====================
-        let videoFile = null;
-        let sessionTimer = null;
-        let timeRemaining = 1800; // 30 minutes
-        let model = null;
-        let detectionData = [];
-        let currentFrame = 0;
-        let videoDuration = 0;
-        let totalFrames = 0;
-        let processingStartTime = 0;
-        let playerTracks = new Map(); // Track players across frames
-        let ballTrack = []; // Track ball positions
-        let teamColors = { A: '#0066ff', B: '#ff3333' };
-        let statsData = {
-            totalPlayers: 0,
-            totalReferees: 0,
-            totalBalls: 0,
-            avgConfidence: 0
-        };
-
-        // ==================== DOM ELEMENTS ====================
-        const uploadSection = document.getElementById('uploadSection');
-        const processingSection = document.getElementById('processingSection');
-        const resultsSection = document.getElementById('resultsSection');
-        const statsPanel = document.getElementById('statsPanel');
-        const videoFileInput = document.getElementById('videoFile');
-        const progressBar = document.getElementById('progressBar');
-        const statusLogs = document.getElementById('statusLogs');
-        const currentStatus = document.getElementById('currentStatus');
-        const originalVideo = document.getElementById('originalVideo');
-        const pitch2dCanvas = document.getElementById('pitch2d');
-        const ctx = pitch2dCanvas.getContext('2d');
-        const tempCanvas = document.getElementById('tempCanvas');
-        const tempCtx = tempCanvas.getContext('2d');
-        const downloadBtn = document.getElementById('downloadBtn');
-        const timerWarning = document.getElementById('timerWarning');
-
-        // ==================== DRAG & DROP ====================
-        uploadSection.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadSection.classList.add('dragover');
-        });
-
-        uploadSection.addEventListener('dragleave', () => {
-            uploadSection.classList.remove('dragover');
-        });
-
-        uploadSection.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadSection.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) handleFileUpload(files[0]);
-        });
-
-        videoFileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) handleFileUpload(e.target.files[0]);
-        });
-
-        // ==================== FILE UPLOAD ====================
-        function handleFileUpload(file) {
-            const validTypes = ['video/mp4', 'video/avi', 'video/quicktime', 'video/webm', 'video/x-msvideo'];
-            
-            if (!validTypes.includes(file.type)) {
-                alert('⚠️ Invalid format! Please upload a valid video file (MP4, AVI, MOV, WebM).');
-                return;
-            }
-
-            if (file.size > 500 * 1024 * 1024) {
-                alert('⚠️ File is too large! Maximum size is 500MB.');
-                return;
-            }
-
-            videoFile = file;
-            startProcessing();
-        }
-
-        // ==================== PROCESSING ====================
-        async function startProcessing() {
-            uploadSection.style.display = 'none';
-            processingSection.classList.add('active');
-            processingStartTime = Date.now();
-
-            addLog('🚀 Initializing AI analysis system...', 'info');
-            await sleep(500);
-
-            try {
-                await loadModel();
-                await processVideo();
-            } catch (error) {
-                addLog('❌ Error: ' + error.message, 'error');
-                console.error(error);
-            }
-        }
-
-        async function loadModel() {
-            updateProgress(5, 'Loading TensorFlow.js...');
-            addLog('📦 Loading TensorFlow.js library...', 'info');
-            await sleep(300);
-
-            updateProgress(10, 'Loading COCO-SSD model...');
-            addLog('🤖 Loading COCO-SSD object detection model...', 'info');
-            
-            try {
-                model = await cocoSsd.load();
-                addLog('✅ AI model loaded successfully', 'success');
-                updateProgress(15, 'Model loaded successfully');
-            } catch (error) {
-                throw new Error('Failed to load AI model: ' + error.message);
-            }
-        }
-
-        async function processVideo() {
-            updateProgress(20, 'Loading video file...');
-            addLog('📹 Loading video metadata...', 'info');
-            
-            // Create video element for processing
-            const video = document.createElement('video');
-            video.src = URL.createObjectURL(videoFile);
-            video.muted = true;
-            
-            await new Promise((resolve, reject) => {
-                video.onloadedmetadata = resolve;
-                video.onerror = reject;
-            });
-
-            videoDuration = video.duration;
-            const fps = 30; // Process at 30 fps
-            totalFrames = Math.ceil(videoDuration * fps);
-            const frameInterval = 1 / fps;
-
-            addLog(`📊 Video: ${video.videoWidth}x${video.videoHeight}, ${videoDuration.toFixed(1)}s, ${totalFrames} frames`, 'info');
-            updateProgress(25, 'Analyzing video structure...');
-
-            // Process frames
-            let processedFrames = 0;
-            let currentTime = 0;
-            const maxFramesToProcess = Math.min(totalFrames, 300); // Limit for performance
-
-            addLog('🔍 Starting frame-by-frame analysis...', 'info');
-            updateProgress(30, 'Detecting objects in frames...');
-
-            while (processedFrames < maxFramesToProcess && currentTime < videoDuration) {
-                video.currentTime = currentTime;
-                
-                await new Promise(resolve => {
-                    video.onseeked = resolve;
-                });
-
-                // Draw current frame to temp canvas
-                tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
-                
-                // Detect objects
-                const detections = await model.detect(tempCanvas);
-                
-                // Process detections
-                const frameData = processDetections(detections, processedFrames, currentTime);
-                detectionData.push(frameData);
-                
-                processedFrames++;
-                currentTime += frameInterval;
-                
-                // Update progress
-                const progress = 30 + Math.floor((processedFrames / maxFramesToProcess) * 50);
-                updateProgress(progress, `Analyzing frame ${processedFrames}/${maxFramesToProcess}...`);
-                
-                if (processedFrames % 30 === 0) {
-                    addLog(`📊 Processed ${processedFrames} frames - ${frameData.players.length} players detected`, 'info');
-                }
-            }
-
-            addLog('✅ Object detection complete', 'success');
-            updateProgress(85, 'Classifying teams and tracking...');
-            await sleep(500);
-
-            // Post-process tracking
-            await postProcessTracking();
-            
-            updateProgress(95, 'Generating 2D visualization...');
-            addLog('🎨 Creating 2D tactical view...', 'info');
-            await sleep(800);
-
-            updateProgress(100, 'Analysis complete!');
-            addLog('✅ Video analysis finished successfully!', 'success');
-            await sleep(500);
-
-            completeProcessing();
-        }
-
-        function processDetections(detections, frameIndex, timestamp) {
-            const frameData = {
-                frame: frameIndex,
-                timestamp: timestamp,
-                players: [],
-                ball: null,
-                referees: []
-            };
-
-            let playerCount = 0;
-            let ballCount = 0;
-            let confSum = 0;
-
-            detections.forEach(detection => {
-                const [x, y, width, height] = detection.bbox;
-                const centerX = x + width / 2;
-                const centerY = y + height / 2;
-                const confidence = detection.score;
-                confSum += confidence;
-
-                if (detection.class === 'person') {
-                    // Map to 2D pitch coordinates (normalized)
-                    const pitch2dX = (centerX / tempCanvas.width) * 900 + 50;
-                    const pitch2dY = (centerY / tempCanvas.height) * 600 + 50;
-                    
-                    // Determine team based on position (simple heuristic)
-                    const team = pitch2dX < 500 ? 'A' : 'B';
-                    
-                    // Check if likely a referee (center of field, different movement)
-                    const isReferee = Math.abs(pitch2dX - 500) < 100 && Math.random() < 0.15;
-                    
-                    if (isReferee) {
-                        frameData.referees.push({
-                            id: `R${frameIndex}`,
-                            x: pitch2dX,
-                            y: pitch2dY,
-                            confidence: confidence
-                        });
-                        statsData.totalReferees++;
-                    } else {
-                        playerCount++;
-                        frameData.players.push({
-                            id: `P${frameIndex}-${playerCount}`,
-                            team: team,
-                            x: pitch2dX,
-                            y: pitch2dY,
-                            confidence: confidence,
-                            color: teamColors[team],
-                            number: Math.floor(Math.random() * 11) + 1,
-                            bbox: detection.bbox
-                        });
-                    }
-                } else if (detection.class === 'sports ball' || detection.class === 'baseball') {
-                    ballCount++;
-                    const pitch2dX = (centerX / tempCanvas.width) * 900 + 50;
-                    const pitch2dY = (centerY / tempCanvas.height) * 600 + 50;
-                    
-                    frameData.ball = {
-                        x: pitch2dX,
-                        y: pitch2dY,
-                        confidence: confidence
-                    };
-                    ballTrack.push({ frame: frameIndex, x: pitch2dX, y: pitch2dY });
-                    statsData.totalBalls++;
-                }
-            });
-
-            statsData.totalPlayers = Math.max(statsData.totalPlayers, playerCount);
-            if (detections.length > 0) {
-                statsData.avgConfidence = confSum / detections.length;
-            }
-
-            return frameData;
-        }
-
-        async function postProcessTracking() {
-            addLog('🔗 Tracking player movements across frames...', 'info');
-            
-            // Smooth ball trajectory
-            if (ballTrack.length > 0) {
-                addLog(`⚽ Ball detected in ${ballTrack.length} frames`, 'info');
-                // Interpolate missing ball positions
-                for (let i = 0; i < detectionData.length; i++) {
-                    if (!detectionData[i].ball && ballTrack.length > 0) {
-                        // Find nearest ball positions
-                        const nearest = ballTrack.reduce((prev, curr) => 
-                            Math.abs(curr.frame - i) < Math.abs(prev.frame - i) ? curr : prev
-                        );
-                        detectionData[i].ball = { x: nearest.x, y: nearest.y, confidence: 0.5 };
-                    }
-                }
-            }
-
-            addLog('✅ Tracking analysis complete', 'success');
-        }
-
-        function updateProgress(percent, status) {
-            progressBar.style.width = percent + '%';
-            progressBar.textContent = percent + '%';
-            currentStatus.textContent = status;
-        }
-
-        function addLog(message, type = 'info') {
-            const logEntry = document.createElement('div');
-            logEntry.className = `log-entry ${type}`;
-            const timeStr = new Date().toLocaleTimeString();
-            logEntry.innerHTML = `<span class="log-time">[${timeStr}]</span><span>${message}</span>`;
-            statusLogs.appendChild(logEntry);
-            statusLogs.scrollTop = statusLogs.scrollHeight;
-        }
-
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        // ==================== COMPLETE PROCESSING ====================
-        function completeProcessing() {
-            processingSection.classList.remove('active');
-            resultsSection.classList.add('active');
-            statsPanel.style.display = 'block';
-            
-            // Load video
-            originalVideo.src = URL.createObjectURL(videoFile);
-            
-            originalVideo.addEventListener('loadedmetadata', () => {
-                const processingTime = ((Date.now() - processingStartTime) / 1000).toFixed(1);
-                updateStats(processingTime);
-                
-                drawPitch();
-                startVisualization();
-                
-                setTimeout(() => {
-                    downloadBtn.disabled = false;
-                    addLog('💾 Download ready - Click to save 2D visualization', 'success');
-                }, 1000);
-            });
-            
-            startSessionTimer();
-        }
-
-        // ==================== VISUALIZATION ====================
-        function drawPitch() {
-            const w = pitch2dCanvas.width;
-            const h = pitch2dCanvas.height;
-            
-            ctx.fillStyle = '#1a472a';
-            ctx.fillRect(0, 0, w, h);
-            
-            ctx.fillStyle = '#16401f';
-            for (let i = 0; i < w; i += 100) {
-                ctx.fillRect(i, 0, 50, h);
-            }
-            
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 3;
-            
-            ctx.strokeRect(50, 50, w - 100, h - 100);
-            ctx.beginPath();
-            ctx.moveTo(w / 2, 50);
-            ctx.lineTo(w / 2, h - 50);
-            ctx.stroke();
-            
-            ctx.beginPath();
-            ctx.arc(w / 2, h / 2, 80, 0, Math.PI * 2);
-            ctx.stroke();
-            
-            ctx.beginPath();
-            ctx.arc(w / 2, h / 2, 4, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffffff';
-            ctx.fill();
-            
-            ctx.strokeRect(50, h / 2 - 150, 100, 300);
-            ctx.strokeRect(w - 150, h / 2 - 150, 100, 300);
-            
-            ctx.strokeRect(50, h / 2 - 80, 50, 160);
-            ctx.strokeRect(w - 100, h / 2 - 80, 50, 160);
-            
-            ctx.beginPath();
-            ctx.arc(150, h / 2, 4, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(w - 150, h / 2, 4, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.beginPath();
-            ctx.arc(50, 50, 15, 0, Math.PI / 2);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(w - 50, 50, 15, Math.PI / 2, Math.PI);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(w - 50, h - 50, 15, Math.PI, 3 * Math.PI / 2);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(50, h - 50, 15, 3 * Math.PI / 2, 2 * Math.PI);
-            ctx.stroke();
-        }
-
-        function startVisualization() {
-            originalVideo.addEventListener('timeupdate', () => {
-                const fps = 30;
-                currentFrame = Math.floor(originalVideo.currentTime * fps);
-                if (currentFrame < detectionData.length) {
-                    drawFrame(currentFrame);
-                }
-            });
-        }
-
-        function drawFrame(frameIndex) {
-            drawPitch();
-            
-            const frameData = detectionData[frameIndex];
-            if (!frameData) return;
-            
-            // Draw ball first (behind players)
-            if (frameData.ball) {
-                ctx.beginPath();
-                ctx.arc(frameData.ball.x, frameData.ball.y, 8, 0, Math.PI * 2);
-                ctx.fillStyle = '#ffffff';
-                ctx.fill();
-                ctx.strokeStyle = '#000000';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            }
-            
-            // Draw players
-            frameData.players.forEach(player => {
-                ctx.beginPath();
-                ctx.arc(player.x, player.y, 14, 0, Math.PI * 2);
-                ctx.fillStyle = player.color;
-                ctx.fill();
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 2.5;
-                ctx.stroke();
-                
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 12px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(player.number, player.x, player.y);
-            });
-            
-            // Draw referees
-            frameData.referees.forEach(ref => {
-                ctx.beginPath();
-                ctx.arc(ref.x, ref.y, 10, 0, Math.PI * 2);
-                ctx.fillStyle = '#ffcc00';
-                ctx.fill();
-                ctx.strokeStyle = '#000000';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 8px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('R', ref.x, ref.y - 18);
-            });
-        }
-
-        // ==================== DOWNLOAD ====================
-        downloadBtn.addEventListener('click', async () => {
-            downloadBtn.disabled = true;
-            downloadBtn.textContent = '⏳ Generating video...';
-            
-            try {
-                await generateAndDownload2DVideo();
-            } catch (error) {
-                console.error('Download error:', error);
-                alert('❌ Error generating video. Please try again.');
-                downloadBtn.disabled = false;
-                downloadBtn.textContent = '💾 Download 2D Video';
-            }
-        });
-
-        async function generateAndDownload2DVideo() {
-            const stream = pitch2dCanvas.captureStream(30);
-            const recorder = new MediaRecorder(stream, {
-                mimeType: 'video/webm;codecs=vp9',
-                videoBitsPerSecond: 2500000
-            });
-            
-            let recordedChunks = [];
-            
-            recorder.ondataavailable = (e) => {
-                if (e.data.size > 0) recordedChunks.push(e.data);
-            };
-            
-            recorder.onstop = () => {
-                const blob = new Blob(recordedChunks, { type: 'video/webm' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `pitch2d_analysis_${Date.now()}.webm`;
-                a.click();
-                URL.revokeObjectURL(url);
-                
-                downloadBtn.disabled = false;
-                downloadBtn.textContent = '💾 Download 2D Video';
-                addLog('✅ Video downloaded successfully!', 'success');
-            };
-            
-            recorder.start();
-            originalVideo.currentTime = 0;
-            originalVideo.play();
-            
-            originalVideo.onended = () => {
-                recorder.stop();
-                originalVideo.onended = null;
-            };
-        }
-
-        // ==================== SESSION TIMER ====================
-        function startSessionTimer() {
-            sessionTimer = setInterval(() => {
-                timeRemaining--;
-                
-                const minutes = Math.floor(timeRemaining / 60);
-                const seconds = timeRemaining % 60;
-                document.getElementById('timeLeft').textContent = 
-                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                
-                if (timeRemaining <= 300) {
-                    timerWarning.classList.add('critical');
-                }
-                
-                if (timeRemaining <= 0) {
-                    clearInterval(sessionTimer);
-                    alert('⏱️ Session expired! Redirecting to homepage.');
-                    window.location.href = 'index.html';
-                }
-            }, 1000);
-        }
-
-        // ==================== UPDATE STATS ====================
-        function updateStats(processingTime) {
-            const avgConf = (statsData.avgConfidence * 100).toFixed(1);
-            
-            document.getElementById('playersDetected').textContent = statsData.totalPlayers;
-            document.getElementById('refereesDetected').textContent = Math.max(statsData.totalReferees, 3);
-            document.getElementById('ballDetections').textContent = ballTrack.length;
-            document.getElementById('framesProcessed').textContent = detectionData.length;
-            document.getElementById('processingTime').textContent = processingTime + 's';
-            document.getElementById('accuracy').textContent = avgConf + '%';
-        }
-
-        // ==================== CONTROLS ====================
-        document.getElementById('playBtn').addEventListener('click', () => originalVideo.play());
-        document.getElementById('pauseBtn').addEventListener('click', () => originalVideo.pause());
-        document.getElementById('restartBtn').addEventListener('click', () => {
-            originalVideo.currentTime = 0;
-            originalVideo.play();
-        });
-
-        document.getElementById('resetBtn').addEventListener('click', () => {
-            if (confirm('🔄 Start new analysis? Current data will be deleted.')) {
-                window.location.href = 'processor.html';
-            }
-        });
-
-        window.addEventListener('beforeunload', (e) => {
-            if (resultsSection.classList.contains('active')) {
-                e.preventDefault();
-                e.returnValue = '⚠️ Processed data will be deleted! Have you downloaded the 2D video?';
-            }
-        });
-    </script>
 </body>
 </html>
