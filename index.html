@@ -3,477 +3,417 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pitch2d | Ultimate Football Database</title>
-    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;600&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    <title>Pitch2D - Analiză Video Fotbal cu AI</title>
     <style>
-        /* --- PITCH2D CORE DESIGN SYSTEM --- */
-        :root {
-            --bg-dark: #0b0c10;
-            --bg-panel: #1f2833;
-            --accent-cyan: #45a29e;
-            --accent-neon: #66fcf1;
-            --text-white: #ffffff;
-            --text-gray: #c5c6c7;
-            --card-gradient: linear-gradient(145deg, #1f2833, #151b22);
-            --glass: rgba(31, 40, 51, 0.8);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-white);
-            font-family: 'Rajdhani', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            color: #ffffff;
+            line-height: 1.6;
             overflow-x: hidden;
-            min-height: 100vh;
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(69, 162, 158, 0.1) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(102, 252, 241, 0.05) 0%, transparent 20%);
         }
 
-        /* --- HEADER & NAVIGATION --- */
-        header {
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(15, 32, 39, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1.5rem 5%;
-            border-bottom: 1px solid rgba(102, 252, 241, 0.2);
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
             z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
         }
 
-        .brand {
-            font-family: 'Teko', sans-serif;
-            font-size: 2.5rem;
-            font-weight: 600;
-            color: var(--accent-neon);
-            text-transform: uppercase;
-            letter-spacing: 2px;
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-buttons {
             display: flex;
-            align-items: center;
-            gap: 10px;
+            gap: 1rem;
         }
 
-        .brand span { color: var(--text-white); }
-
-        .nav-stats {
-            display: flex;
-            gap: 2rem;
-            font-size: 0.9rem;
-            color: var(--accent-cyan);
+        .nav-btn {
+            padding: 0.6rem 1.5rem;
+            background: transparent;
+            border: 2px solid #00d4ff;
+            color: #00d4ff;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
         }
 
-        /* --- HERO & SEARCH SECTION --- */
+        .nav-btn:hover {
+            background: #00d4ff;
+            color: #0f2027;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+        }
+
         .hero {
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
-            padding: 4rem 1rem;
+            align-items: center;
             text-align: center;
+            padding: 8rem 2rem 4rem;
+            position: relative;
         }
 
         .hero h1 {
-            font-family: 'Teko', sans-serif;
             font-size: 4rem;
-            text-transform: uppercase;
-            line-height: 1;
             margin-bottom: 1rem;
-            text-shadow: 0 0 20px rgba(102, 252, 241, 0.3);
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInDown 1s ease;
         }
 
-        .search-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 700px;
-            margin-top: 2rem;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 1.5rem 2rem;
-            padding-right: 4rem;
-            background: rgba(31, 40, 51, 0.6);
-            border: 2px solid var(--accent-cyan);
-            border-radius: 5px;
-            color: var(--text-white);
-            font-size: 1.2rem;
-            font-family: 'Rajdhani', sans-serif;
-            transition: all 0.3s ease;
-            outline: none;
-        }
-
-        .search-input:focus {
-            background: rgba(31, 40, 51, 0.9);
-            border-color: var(--accent-neon);
-            box-shadow: 0 0 25px rgba(102, 252, 241, 0.15);
-        }
-
-        .search-btn {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: transparent;
-            border: none;
-            color: var(--accent-neon);
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 10px;
-        }
-
-        /* --- RESULTS GRID --- */
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
+        .hero p {
+            font-size: 1.3rem;
             margin-bottom: 2rem;
-            border-bottom: 1px solid #333;
-            padding-bottom: 0.5rem;
-            font-family: 'Teko', sans-serif;
-            font-size: 1.2rem;
-            color: var(--text-gray);
+            color: #b0e0e6;
+            max-width: 700px;
+            animation: fadeInUp 1s ease 0.3s both;
         }
 
-        .grid-players {
+        .cta-button {
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            border: none;
+            border-radius: 50px;
+            color: #0f2027;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+            animation: fadeInUp 1s ease 0.6s both;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(0, 212, 255, 0.5);
+        }
+
+        .features {
+            padding: 6rem 2rem;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .feature-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: #00d4ff;
+            box-shadow: 0 15px 40px rgba(0, 212, 255, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #00d4ff;
+        }
+
+        .feature-card p {
+            color: #b0e0e6;
+            font-size: 1rem;
+        }
+
+        .how-it-works {
+            padding: 6rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .how-it-works h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .steps {
+            display: flex;
+            flex-direction: column;
             gap: 2rem;
         }
 
-        /* --- PLAYER CARD DESIGN (Futuristic) --- */
-        .player-card {
-            background: var(--card-gradient);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 8px;
-            overflow: hidden;
-            position: relative;
-            transition: transform 0.3s, box-shadow 0.3s;
-            height: 100%;
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 15px;
+            border-left: 4px solid #00d4ff;
         }
 
-        .player-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent-neon), transparent);
-            opacity: 0;
-            transition: 0.3s;
+        .step-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #00d4ff;
+            min-width: 60px;
         }
 
-        .player-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-            border-color: var(--accent-cyan);
-        }
-
-        .player-card:hover::before { opacity: 1; }
-
-        .card-header {
-            height: 300px;
-            position: relative;
-            background-color: #000;
-            overflow: hidden;
-        }
-
-        .player-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: top;
-            transition: transform 0.5s;
-        }
-
-        .player-card:hover .player-img { transform: scale(1.05); }
-
-        .team-badge {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.7);
-            padding: 5px 10px;
-            border-radius: 4px;
-            border: 1px solid var(--accent-cyan);
-            color: var(--accent-neon);
-            font-size: 0.8rem;
-            font-weight: 700;
-        }
-
-        .card-body { padding: 1.5rem; }
-
-        .p-name {
-            font-family: 'Teko', sans-serif;
-            font-size: 2rem;
-            color: var(--text-white);
+        .step-content h3 {
+            font-size: 1.5rem;
             margin-bottom: 0.5rem;
-            line-height: 1;
+            color: #00ff88;
         }
 
-        .p-meta {
-            display: flex;
-            gap: 1rem;
-            font-size: 0.9rem;
-            color: var(--accent-cyan);
-            margin-bottom: 1.5rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .step-content p {
+            color: #b0e0e6;
         }
 
-        /* Stats Table Style within Card */
-        .stats-matrix {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            background: rgba(0,0,0,0.3);
-            padding: 10px;
-            border-radius: 4px;
-        }
-
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.9rem;
-            padding: 5px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .stat-label { color: var(--text-gray); }
-        .stat-val { color: var(--accent-neon); font-weight: 700; }
-
-        .desc-preview {
-            margin-top: 1rem;
-            font-size: 0.85rem;
-            color: #888;
-            line-height: 1.4;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        /* Loader */
-        .loader-container {
-            display: none;
+        .tech-stack {
+            padding: 6rem 2rem;
+            background: rgba(255, 255, 255, 0.03);
             text-align: center;
-            margin: 3rem 0;
         }
-        .loader {
-            border: 3px solid rgba(102, 252, 241, 0.1);
-            border-top: 3px solid var(--accent-neon);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
+
+        .tech-stack h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tech-badges {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            max-width: 900px;
             margin: 0 auto;
         }
 
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .tech-badge {
+            background: rgba(0, 212, 255, 0.1);
+            border: 2px solid #00d4ff;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            font-weight: bold;
+            color: #00d4ff;
+            transition: all 0.3s ease;
+        }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-dark); }
-        ::-webkit-scrollbar-thumb { background: var(--accent-cyan); border-radius: 4px; }
+        .tech-badge:hover {
+            background: #00d4ff;
+            color: #0f2027;
+            transform: scale(1.1);
+        }
+
+        .footer {
+            padding: 2rem;
+            text-align: center;
+            background: rgba(15, 32, 39, 0.8);
+            color: #b0e0e6;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
         @media (max-width: 768px) {
-            .hero h1 { font-size: 2.5rem; }
-            .grid-players { grid-template-columns: 1fr; }
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .step {
+                flex-direction: column;
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
-
-    <!-- HEADER -->
-    <header>
-        <div class="brand">
-            <i class="fa-solid fa-futbol"></i>
-            <div>PITCH<span>2D</span></div>
+    <nav class="navbar">
+        <div class="logo">⚽ Pitch2D</div>
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-btn">Acasă</a>
+            <a href="processor.html" class="nav-btn">Încercare</a>
         </div>
-        <div class="nav-stats">
-            <span><i class="fa-solid fa-database"></i> LIVE DB CONNECTED</span>
-            <span><i class="fa-solid fa-signal"></i> V 2.4</span>
-        </div>
-    </header>
+    </nav>
 
-    <!-- HERO -->
     <section class="hero">
-        <h1>Caută Legendele Fotbalului</h1>
-        <p style="color: #888; max-width: 500px;">Accesează baza de date globală. Statistici, profiluri fizice și detalii despre echipe conectate direct prin API.</p>
-        
-        <div class="search-wrapper">
-            <input type="text" id="searchInput" class="search-input" placeholder="Caută jucător (ex: Ronaldo, Messi, Neymar)...">
-            <button class="search-btn" onclick="fetchPlayers()">
-                <i class="fa-solid fa-magnifying-glass"></i>
-            </button>
+        <h1>Pitch2D</h1>
+        <p>Transformă videoclipuri de fotbal în vizualizări 2D interactive folosind inteligență artificială avansată. Analizează jucători, poziții și mișcări în timp real.</p>
+        <button class="cta-button" onclick="window.location.href='processor.html'">
+            Începe Analiza →
+        </button>
+    </section>
+
+    <section class="features">
+        <h2>Caracteristici Principale</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Detecție Precisă</h3>
+                <p>Folosim YOLO și modele antrenate pe date de fotbal pentru detectarea exactă a jucătorilor, arbitrilor și mingii în fiecare cadru.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📍</div>
+                <h3>Localizare Teren</h3>
+                <p>Analizează liniile terenului și calibrează automat camera pentru transformare precisă în coordonate 2D.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>Identificare Echipe</h3>
+                <p>Clasificare automată a echipelor bazată pe culoarea tricourilor și poziționarea jucătorilor pe teren.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔢</div>
+                <h3>Recunoaștere Numere</h3>
+                <p>Detectează și citește numerele de pe tricouri pentru identificarea precisă a jucătorilor.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Tracking în Timp Real</h3>
+                <p>Urmărește mișcarea fiecărui jucător pe tot parcursul clipului, chiar și în momente cu ocluzie.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">💾</div>
+                <h3>Export 2D</h3>
+                <p>Descarcă vizualizarea 2D completă a meciului cu toate pozițiile și mișcările jucătorilor.</p>
+            </div>
         </div>
     </section>
 
-    <!-- MAIN CONTENT -->
-    <div class="container">
-        <div class="status-bar">
-            <span id="resultCount">Așteptare căutare...</span>
-            <span>DATA SOURCE: THESPORTSDB</span>
-        </div>
-
-        <div class="loader-container" id="loader">
-            <div class="loader"></div>
-            <p style="margin-top: 10px; color: var(--accent-cyan);">Se scanează baza de date...</p>
-        </div>
-
-        <div class="grid-players" id="playersGrid">
-            <!-- Cardurile jucătorilor vor fi injectate aici -->
-        </div>
-    </div>
-
-    <!-- JAVASCRIPT LOGIC -->
-    <script>
-        // Baza de date API publică
-        const API_ENDPOINT = 'https://www.thesportsdb.com/api/v1/json/3/searchplayers.php?p=';
-        
-        // Jucători preîncărcați la start pentru demo
-        const featuredPlayers = ['Kylian Mbappe', 'Erling Haaland', 'Jude Bellingham', 'Vinicius Junior'];
-
-        const grid = document.getElementById('playersGrid');
-        const input = document.getElementById('searchInput');
-        const loader = document.getElementById('loader');
-        const statusText = document.getElementById('resultCount');
-
-        // Inițializare
-        window.addEventListener('load', async () => {
-            statusText.innerText = "Încărcare jucători de top...";
-            loader.style.display = 'block';
-            
-            // Încărcăm secvențial jucătorii featured
-            for(let player of featuredPlayers) {
-                await getPlayerData(player, false);
-            }
-            
-            loader.style.display = 'none';
-            statusText.innerText = "Jucători Populari (Demo)";
-        });
-
-        // Event Listener pentru Enter
-        input.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') fetchPlayers();
-        });
-
-        // Funcția principală de căutare
-        async function fetchPlayers() {
-            const query = input.value.trim();
-            if (!query) return;
-
-            grid.innerHTML = ''; // Reset grid
-            loader.style.display = 'block';
-            statusText.innerText = `Căutare pentru "${query}"...`;
-
-            try {
-                const response = await fetch(API_ENDPOINT + query);
-                const data = await response.json();
-
-                loader.style.display = 'none';
-
-                if (data.player) {
-                    // Filtrăm doar fotbaliștii (API-ul are și baschet, etc)
-                    const soccerPlayers = data.player.filter(p => p.strSport === 'Soccer');
-
-                    if (soccerPlayers.length > 0) {
-                        statusText.innerText = `${soccerPlayers.length} Rezultate găsite`;
-                        soccerPlayers.forEach(player => createCard(player));
-                    } else {
-                        grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 2rem; color: #888;">Nu am găsit fotbaliști cu numele "${query}".</div>`;
-                    }
-                } else {
-                    statusText.innerText = "0 Rezultate";
-                    grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 2rem; color: #888;">Jucătorul nu există în baza de date.</div>`;
-                }
-
-            } catch (error) {
-                console.error(error);
-                loader.style.display = 'none';
-                statusText.innerText = "Eroare conexiune API";
-            }
-        }
-
-        // Funcție helper pentru încărcarea inițială
-        async function getPlayerData(name, clearGrid = false) {
-            try {
-                const response = await fetch(API_ENDPOINT + name);
-                const data = await response.json();
-                if(data.player) {
-                    const p = data.player.find(x => x.strSport === 'Soccer');
-                    if(p) createCard(p);
-                }
-            } catch(e) { console.log(e); }
-        }
-
-        // Generarea HTML-ului pentru Card
-        function createCard(player) {
-            // Gestionăm lipsa datelor
-            const img = player.strThumb ? player.strThumb : 'https://via.placeholder.com/600x400/0b0c10/45a29e?text=No+Image';
-            const team = player.strTeam ? player.strTeam : 'Fără Echipă';
-            const nationality = player.strNationality ? player.strNationality : 'N/A';
-            const position = player.strPosition ? player.strPosition : 'N/A';
-            const height = player.strHeight ? player.strHeight : '-';
-            const weight = player.strWeight ? player.strWeight : '-';
-            const birth = player.dateBorn ? player.dateBorn : '-';
-            const desc = player.strDescriptionEN ? player.strDescriptionEN : 'Nu există descriere disponibilă pentru acest jucător.';
-            
-            // Încercăm să extragem numărul tricoului (dacă există în API, uneori e null)
-            const number = player.strNumber ? `#${player.strNumber}` : '';
-
-            const card = document.createElement('div');
-            card.className = 'player-card';
-            card.innerHTML = `
-                <div class="card-header">
-                    <img src="${img}" alt="${player.strPlayer}" class="player-img">
-                    <div class="team-badge">${team}</div>
+    <section class="how-it-works">
+        <h2>Cum Funcționează</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Încarcă Videoclipul</h3>
+                    <p>Selectează un videoclip de fotbal în format MP4, AVI sau MOV. Poți folosi drag & drop sau selectarea din fișiere.</p>
                 </div>
-                <div class="card-body">
-                    <div class="p-name">${player.strPlayer} <span style="color:var(--accent-cyan); font-size:1rem;">${number}</span></div>
-                    <div class="p-meta">
-                        <span><i class="fa-solid fa-flag"></i> ${nationality}</span>
-                        <span><i class="fa-solid fa-crosshairs"></i> ${position}</span>
-                    </div>
+            </div>
 
-                    <div class="stats-matrix">
-                        <div class="stat-row">
-                            <span class="stat-label">Înălțime</span>
-                            <span class="stat-val">${height}</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Greutate</span>
-                            <span class="stat-val">${weight}</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Data Nașterii</span>
-                            <span class="stat-val">${birth}</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Picior</span>
-                            <span class="stat-val">${player.strSide ? player.strSide : 'N/A'}</span>
-                        </div>
-                    </div>
-
-                    <div class="desc-preview">
-                        ${desc}
-                    </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Procesare AI</h3>
+                    <p>Sistemul detectează automat terenul, jucătorii, arbitrii și mingea folosind YOLO v8. Se calibrează camera și se extrag coordonatele 2D.</p>
                 </div>
-            `;
-            
-            grid.appendChild(card);
-        }
-    </script>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Clasificare & Tracking</h3>
+                    <p>Jucătorii sunt clasificați pe echipe, se identifică numerele de pe tricouri și se urmărește mișcarea lor pe tot parcursul clipului.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3>Vizualizare & Export</h3>
+                    <p>Vezi animația 2D generată și descarcă rezultatul. Ai la dispoziție 30 de minute pentru analiză și download.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="tech-stack">
+        <h2>Tehnologii Utilizate</h2>
+        <div class="tech-badges">
+            <div class="tech-badge">YOLO v8</div>
+            <div class="tech-badge">PyTorch</div>
+            <div class="tech-badge">OpenCV</div>
+            <div class="tech-badge">TensorFlow</div>
+            <div class="tech-badge">StrongSORT</div>
+            <div class="tech-badge">ReID</div>
+            <div class="tech-badge">MMDetection</div>
+            <div class="tech-badge">Computer Vision</div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>&copy; 2025 Pitch2D. Analiză video fotbal cu AI de ultimă generație.</p>
+        <p style="margin-top: 1rem; font-size: 0.9rem;">⚠️ Sesiunea expiră după 30 minute de inactivitate. Datele vor fi șterse automat.</p>
+    </footer>
 </body>
 </html>
