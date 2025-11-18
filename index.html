@@ -2,33 +2,430 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <title>Pitch2D - Test Reușit</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProFootball Stats | Bază de Date Jucători</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f4f9;
+        /* --- CSS START: DESIGN PROFESIONAL --- */
+        :root {
+            --primary: #3b82f6;
+            --secondary: #1e293b;
+            --accent: #10b981;
+            --dark-bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+        }
+
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
         }
-        .card {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header & Nav */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 5%;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 2rem;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        /* Hero Section */
+        .hero {
             text-align: center;
+            padding: 4rem 1rem;
+            background: radial-gradient(circle at top, rgba(59, 130, 246, 0.15), transparent 40%);
         }
-        h1 { color: #333; }
-        .status { color: #28a745; font-weight: bold; font-size: 1.2em; }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            margin-bottom: 2.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Search Bar Styling */
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 1.2rem 1.5rem;
+            padding-right: 3.5rem;
+            border-radius: 50px;
+            border: 2px solid #334155;
+            background: var(--secondary);
+            color: white;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-box:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary);
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: grid;
+            place-items: center;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        /* Results Grid */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .section-title {
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            border-left: 4px solid var(--primary);
+            padding-left: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        /* Player Card */
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .card-img-top {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background: #0f172a;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .player-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .player-team {
+            color: var(--primary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .nationality {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0,0,0,0.6);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Loader */
+        .loader {
+            display: none;
+            margin: 2rem auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>Salut! Domeniul tău funcționează.</h1>
-        <p class="status">✔ Conexiunea DNS este perfectă.</p>
-        <p>Acesta este doar un fișier de test (index.html).</p>
+
+    <!-- Navbar -->
+    <nav>
+        <div class="logo"><i class="fa-solid fa-futbol"></i> ProStats</div>
+        <div class="nav-links">
+            <a href="#">Acasă</a>
+            <a href="#">Clasamente</a>
+            <a href="#">Despre</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Găsește orice jucător</h1>
+        <p>Cea mai rapidă bază de date pentru statistici, echipe și detalii despre jucătorii tăi favoriți din fotbalul mondial.</p>
+        
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-box" placeholder="Caută un jucător (ex: Messi, Ronaldo, Mbappe)...">
+            <button class="search-btn" onclick="searchPlayer()">
+                <i class="fa-solid fa-search"></i>
+            </button>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <div class="container">
+        <h2 class="section-title" id="resultsTitle">Jucători Populari (Start)</h2>
+        
+        <!-- Loader -->
+        <div class="loader" id="loader"></div>
+
+        <!-- Grid Container -->
+        <div class="grid" id="playerGrid">
+            <!-- Cards will be injected here via JS -->
+        </div>
     </div>
+
+    <script>
+        /* --- JAVASCRIPT START --- */
+
+        // Folosim API-ul public "TheSportsDB" pentru date reale
+        const API_URL = "https://www.thesportsdb.com/api/v1/json/3/searchplayers.php?p=";
+        
+        const grid = document.getElementById('playerGrid');
+        const loader = document.getElementById('loader');
+        const searchInput = document.getElementById('searchInput');
+        const resultsTitle = document.getElementById('resultsTitle');
+
+        // Lista de jucători care apar la încărcarea paginii (Default)
+        const defaultPlayers = ['Lionel Messi', 'Cristiano Ronaldo', 'Erling Haaland', 'Kylian Mbappe', 'Kevin De Bruyne', 'Jude Bellingham'];
+
+        // Funcție pentru a porni site-ul
+        window.onload = async () => {
+            await loadDefaultPlayers();
+        };
+
+        // Ascultă tasta ENTER în input
+        searchInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                searchPlayer();
+            }
+        });
+
+        async function loadDefaultPlayers() {
+            loader.style.display = 'block';
+            grid.innerHTML = '';
+            
+            for (let name of defaultPlayers) {
+                await fetchAndRenderPlayer(name, false); // false = nu curăța gridul, adaugă
+            }
+            loader.style.display = 'none';
+        }
+
+        async function searchPlayer() {
+            const query = searchInput.value.trim();
+            if (!query) return alert("Te rog scrie numele unui jucător!");
+
+            loader.style.display = 'block';
+            resultsTitle.innerText = `Rezultatele căutării pentru: "${query}"`;
+            grid.innerHTML = ''; // Curăță rezultatele vechi
+
+            try {
+                const response = await fetch(API_URL + query);
+                const data = await response.json();
+
+                if (data.player) {
+                    // Filtrăm doar fotbaliștii (API-ul are și baschet etc)
+                    const footballers = data.player.filter(p => p.strSport === 'Soccer');
+                    
+                    if(footballers.length === 0) {
+                        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #94a3b8;">Nu am găsit fotbaliști cu acest nume.</p>';
+                    } else {
+                        footballers.forEach(player => createPlayerCard(player));
+                    }
+                } else {
+                    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #94a3b8;">Jucătorul nu a fost găsit în baza de date.</p>';
+                }
+            } catch (error) {
+                console.error(error);
+                grid.innerHTML = '<p style="color: red;">Eroare la conectarea cu baza de date.</p>';
+            }
+            
+            loader.style.display = 'none';
+        }
+
+        // Funcție ajutătoare pentru lista default
+        async function fetchAndRenderPlayer(name) {
+            try {
+                const response = await fetch(API_URL + name);
+                const data = await response.json();
+                if (data.player) {
+                    // Luăm primul rezultat relevant
+                    const player = data.player.find(p => p.strSport === 'Soccer');
+                    if (player) createPlayerCard(player);
+                }
+            } catch (err) {
+                console.log("Skip " + name);
+            }
+        }
+
+        function createPlayerCard(player) {
+            // Verificăm dacă există date, altfel punem text default
+            const img = player.strThumb ? player.strThumb : 'https://via.placeholder.com/300x250/1e293b/FFFFFF?text=No+Image';
+            const team = player.strTeam ? player.strTeam : 'Echipă necunoscută';
+            const nationality = player.strNationality ? player.strNationality : 'Global';
+            const position = player.strPosition ? player.strPosition : 'N/A';
+            const height = player.strHeight ? player.strHeight : '-';
+            const weight = player.strWeight ? player.strWeight : '-';
+            const born = player.dateBorn ? player.dateBorn : '-';
+
+            // Creăm HTML-ul cardului
+            const cardHTML = `
+                <div class="card">
+                    <div class="nationality"><i class="fa-solid fa-flag"></i> ${nationality}</div>
+                    <img src="${img}" alt="${player.strPlayer}" class="card-img-top">
+                    <div class="card-body">
+                        <h3 class="player-name">${player.strPlayer}</h3>
+                        <span class="player-team"><i class="fa-solid fa-shirt"></i> ${team}</span>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-label">Poziție</span>
+                                <span class="stat-value">${position}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Născut</span>
+                                <span class="stat-value">${born}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Înălțime</span>
+                                <span class="stat-value">${height}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Greutate</span>
+                                <span class="stat-value">${weight}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            grid.innerHTML += cardHTML;
+        }
+    </script>
 </body>
 </html>
