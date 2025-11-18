@@ -3,9 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pitch2D - Home</title>
-    <meta name="description" content="AI-powered football video analysis">
+    <title>Pitch2D | AI Football Analytics Platform</title>
+    <meta name="description" content="Transform match footage into tactical 2D data using advanced Computer Vision and AI.">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
+        :root {
+            --primary: #00d4ff;
+            --secondary: #00ff88;
+            --bg-dark: #0a1828;
+            --bg-darker: #050c14;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,224 +29,649 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #0a1828 0%, #1a2332 50%, #253341 100%);
-            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(0, 212, 255, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(0, 255, 136, 0.1) 0px, transparent 50%),
+                linear-gradient(135deg, #0a1828 0%, #1a2332 100%);
+            color: var(--text-main);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            overflow-x: hidden;
         }
 
+        /* Background Grid Effect */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Navigation */
         .navbar {
             position: fixed;
             top: 0;
             width: 100%;
-            background: rgba(10, 24, 40, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 1rem 2rem;
+            background: rgba(10, 24, 40, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 1rem 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 1000;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--glass-border);
         }
 
         .logo-container {
             display: flex;
             align-items: center;
             gap: 0.8rem;
-            cursor: pointer;
-        }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
+            text-decoration: none;
         }
 
         .logo-text {
-            font-size: 1.8rem;
-            font-weight: 700;
-            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
+            letter-spacing: -0.5px;
         }
 
-        .nav-buttons {
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--text-main);
+        }
+
+        .btn-nav {
+            padding: 0.6rem 1.5rem;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-nav:hover {
+            background: var(--primary);
+            color: var(--bg-dark);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 8rem 5% 4rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            min-height: 90vh;
+        }
+
+        .hero-content {
+            animation: slideUp 0.8s ease-out;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 20px;
+            color: var(--secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            line-height: 1.1;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            letter-spacing: -1px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 2.5rem;
+            max-width: 500px;
+        }
+
+        .hero-buttons {
             display: flex;
             gap: 1rem;
         }
 
-        .nav-btn {
-            padding: 0.6rem 1.5rem;
-            background: transparent;
-            border: 2px solid #00d4ff;
-            color: #00d4ff;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .nav-btn:hover {
-            background: #00d4ff;
-            color: #0a1828;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
-        }
-
-        .nav-btn.active {
-            background: #00d4ff;
-            color: #0a1828;
-        }
-
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 2rem;
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .hero-section {
-            text-align: center;
-            padding: 4rem;
-            background: rgba(255, 255, 255, 0.04);
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
-            border: 1px solid rgba(0, 212, 255, 0.2);
-            max-width: 800px;
-            animation: fadeIn 1s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .hero-title {
-            font-size: 3.5rem;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(45deg, #ffffff, #b0e0e6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 800;
-        }
-
-        .hero-subtitle {
-            font-size: 1.4rem;
-            color: #b0e0e6;
-            margin-bottom: 3rem;
-            line-height: 1.6;
-        }
-
-        .cta-btn {
-            display: inline-block;
-            padding: 1.2rem 3.5rem;
-            background: linear-gradient(45deg, #00d4ff, #00ff88);
-            color: #0a1828;
-            font-weight: 700;
+        .btn-primary {
+            padding: 1rem 2.5rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: var(--bg-dark);
             border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
-            font-size: 1.3rem;
+            font-weight: 700;
             text-decoration: none;
+            font-size: 1.1rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .cta-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.5);
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-secondary {
+            padding: 1rem 2.5rem;
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: var(--glass);
+            border-color: var(--text-main);
+        }
+
+        /* Hero Visual (Abstract) */
+        .hero-visual {
+            position: relative;
+            animation: fadeIn 1.5s ease-out;
+        }
+
+        .pitch-abstract {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            position: relative;
+            backdrop-filter: blur(5px);
+            overflow: hidden;
+        }
+
+        /* Animated Dots */
+        .dot {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--primary);
+            animation: movePlayer 4s infinite linear;
+        }
+        
+        .dot:nth-child(2) { background: var(--secondary); box-shadow: 0 0 10px var(--secondary); animation-delay: 1s; top: 30%; left: 20%; }
+        .dot:nth-child(3) { animation-duration: 6s; top: 60%; left: 80%; }
+
+        @keyframes movePlayer {
+            0% { transform: translate(0, 0); opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translate(100px, -50px); opacity: 0; }
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 6rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
         }
 
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
-            margin-top: 4rem;
         }
 
         .feature-card {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 1.5rem;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 2.5rem;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .icon-box {
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 212, 255, 0.1);
             border-radius: 15px;
-            border-top: 3px solid #00d4ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
         }
 
-        .feature-icon {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        .feature-title {
-            color: #00ff88;
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
+        .card-title {
+            font-size: 1.3rem;
             font-weight: 600;
+            margin-bottom: 1rem;
+            color: #fff;
         }
 
-        .feature-desc {
-            color: #b0e0e6;
+        .card-desc {
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        /* How It Works */
+        .steps-section {
+            background: var(--bg-darker);
+            padding: 6rem 5%;
+            border-top: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .steps-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .step-item {
+            flex: 1;
+            min-width: 250px;
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            font-size: 4rem;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.05);
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 0;
+        }
+
+        .step-content {
+            position: relative;
+            z-index: 1;
+            padding-top: 1rem;
+        }
+
+        .step-icon {
+            margin-bottom: 1rem;
+            color: var(--secondary);
+            font-size: 2rem;
+        }
+
+        /* Tech Spec Strip */
+        .tech-strip {
+            padding: 2rem 5%;
+            text-align: center;
+            background: rgba(0, 212, 255, 0.05);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .tech-text {
+            color: var(--primary);
+            font-family: monospace;
             font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        /* Footer */
+        footer {
+            padding: 4rem 5% 2rem;
+            border-top: 1px solid var(--glass-border);
+            background: var(--bg-darker);
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-brand h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .footer-brand p {
+            color: var(--text-muted);
+            max-width: 300px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 3rem;
+            justify-content: flex-end;
+        }
+
+        .link-group h4 {
+            color: #fff;
+            margin-bottom: 1.5rem;
+        }
+
+        .link-group a {
+            display: block;
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-bottom: 0.8rem;
+            transition: color 0.3s;
+        }
+
+        .link-group a:hover {
+            color: var(--primary);
+        }
+
+        .copyright {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 0.8rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Animations */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Media Queries */
+        @media (max-width: 1024px) {
+            .hero {
+                grid-template-columns: 1fr;
+                text-align: center;
+                padding-top: 6rem;
+                gap: 2rem;
+            }
+
+            .hero-subtitle {
+                margin: 0 auto 2.5rem;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .hero-title {
+                font-size: 3rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem;
+            }
+            .nav-links {
+                display: none; /* Hidden on mobile for simplicity */
+            }
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            .footer-links {
+                justify-content: center;
+            }
+            .hero-title {
+                font-size: 2.5rem;
+            }
         }
     </style>
 </head>
 <body>
+
+    <!-- Background Grid -->
+    <div class="grid-bg"></div>
+
+    <!-- Navbar -->
     <nav class="navbar">
-        <div class="logo-container" onclick="window.location.href='index.html'">
-            <svg class="logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <a href="index.html" class="logo-container">
+            <svg width="30" height="30" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <defs>
-                    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <linearGradient id="navLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:1" />
                         <stop offset="100%" style="stop-color:#00ff88;stop-opacity:1" />
                     </linearGradient>
                 </defs>
-                <circle cx="50" cy="50" r="45" fill="none" stroke="url(#logoGradient)" stroke-width="3"/>
-                <circle cx="50" cy="50" r="8" fill="url(#logoGradient)"/>
-                <line x1="50" y1="5" x2="50" y2="95" stroke="url(#logoGradient)" stroke-width="3"/>
-                <line x1="5" y1="50" x2="95" y2="50" stroke="url(#logoGradient)" stroke-width="3"/>
-                <rect x="5" y="25" width="20" height="50" fill="none" stroke="url(#logoGradient)" stroke-width="2"/>
-                <rect x="75" y="25" width="20" height="50" fill="none" stroke="url(#logoGradient)" stroke-width="2"/>
+                <circle cx="50" cy="50" r="45" fill="none" stroke="url(#navLogoGrad)" stroke-width="4"/>
+                <line x1="50" y1="5" x2="50" y2="95" stroke="url(#navLogoGrad)" stroke-width="4"/>
+                <rect x="30" y="30" width="40" height="40" fill="none" stroke="url(#navLogoGrad)" stroke-width="3"/>
             </svg>
-            <div class="logo-text">Pitch2D</div>
+            <span class="logo-text">Pitch2D</span>
+        </a>
+        <div class="nav-links">
+            <a href="#features" class="nav-link">Features</a>
+            <a href="#how-it-works" class="nav-link">How it works</a>
+            <a href="#" class="nav-link">Technology</a>
         </div>
-        <div class="nav-buttons">
-            <a href="index.html" class="nav-btn active">Home</a>
-            <a href="processor.html" class="nav-btn">Processing</a>
-        </div>
+        <a href="processor.html" class="btn-nav">Launch App</a>
     </nav>
 
-    <div class="container">
-        <div class="hero-section">
-            <h1 class="hero-title">AI Football Analysis</h1>
-            <p class="hero-subtitle">Transform match footage into tactical 2D data.<br>Detect players, referees, and ball movement instantly using Computer Vision.</p>
-            
-            <a href="processor.html" class="cta-btn">Start New Analysis</a>
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-content">
+            <div class="badge">
+                <i class="fas fa-robot"></i> Powered by TensorFlow.js
+            </div>
+            <h1 class="hero-title">
+                Unlock the Game's <br>
+                <span class="gradient-text">Hidden Data</span>
+            </h1>
+            <p class="hero-subtitle">
+                Transform standard match footage into tactical 2D insights. Detect players, referees, and ball movement instantly using browser-based Computer Vision.
+            </p>
+            <div class="hero-buttons">
+                <a href="processor.html" class="btn-primary">
+                    Start Analysis <i class="fas fa-arrow-right"></i>
+                </a>
+                <a href="#how-it-works" class="btn-secondary">
+                    Learn More
+                </a>
+            </div>
+        </div>
+        
+        <div class="hero-visual">
+            <div class="pitch-abstract">
+                <!-- CSS generated visual elements -->
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; border: 2px solid rgba(255,255,255,0.2); border-radius: 50%;"></div>
+                <div style="position: absolute; top: 0; left: 50%; height: 100%; width: 1px; background: rgba(255,255,255,0.2);"></div>
+                
+                <!-- Animated Dots representing players -->
+                <div class="dot" style="top: 40%; left: 40%;"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+    </header>
 
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">🔍</div>
-                    <div class="feature-title">Object Detection</div>
-                    <div class="feature-desc">Identifies players, referees, and the ball with high precision using COCO-SSD.</div>
+    <!-- Tech Strip -->
+    <div class="tech-strip">
+        <span class="tech-text">
+            <i class="fas fa-shield-alt"></i> PRIVACY FIRST: ALL PROCESSING HAPPENS LOCALLY IN YOUR BROWSER
+        </span>
+    </div>
+
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+        <div class="section-header">
+            <h2 class="section-title">Intelligent Analysis</h2>
+            <p style="color: var(--text-muted);">Advanced features powered by the COCO-SSD model</p>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="icon-box"><i class="fas fa-search-location"></i></div>
+                <h3 class="card-title">Object Detection</h3>
+                <p class="card-desc">Identifies and classifies players, referees, and the ball with high precision using state-of-the-art neural networks.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="icon-box"><i class="fas fa-map"></i></div>
+                <h3 class="card-title">2D Mapping</h3>
+                <p class="card-desc">Converts video perspective into a top-down 2D tactical view, correcting for camera angles and perspective distortion.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="icon-box"><i class="fas fa-chart-line"></i></div>
+                <h3 class="card-title">Live Statistics</h3>
+                <p class="card-desc">Generate real-time data including player counts, confidence intervals, and processing framerates.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="icon-box"><i class="fas fa-bolt"></i></div>
+                <h3 class="card-title">Zero Latency Upload</h3>
+                <p class="card-desc">No heavy server uploads required. The engine runs directly in your Chrome or Firefox browser using WebGL.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it works -->
+    <section id="how-it-works" class="steps-section">
+        <div class="section-header">
+            <h2 class="section-title">How It Works</h2>
+        </div>
+        <div class="steps-container">
+            <div class="step-item">
+                <div class="step-number">01</div>
+                <div class="step-content">
+                    <div class="step-icon"><i class="fas fa-file-video"></i></div>
+                    <h3>Upload Video</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Select any MP4, AVI, or WebM football clip.</p>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🗺️</div>
-                    <div class="feature-title">2D Mapping</div>
-                    <div class="feature-desc">Converts video perspective into a top-down 2D tactical view.</div>
+            </div>
+            <div class="step-item">
+                <div class="step-number">02</div>
+                <div class="step-content">
+                    <div class="step-icon"><i class="fas fa-cogs"></i></div>
+                    <h3>AI Processing</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">The model scans frames to identify entities.</p>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📊</div>
-                    <div class="feature-title">Live Statistics</div>
-                    <div class="feature-desc">Real-time tracking data and exportable video analysis.</div>
+            </div>
+            <div class="step-item">
+                <div class="step-number">03</div>
+                <div class="step-content">
+                    <div class="step-icon"><i class="fas fa-download"></i></div>
+                    <h3>Export Data</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">View the 2D simulation and download the result.</p>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-brand">
+                <h3>Pitch2D</h3>
+                <p>Democratizing sports analytics with accessible, browser-based AI tools.</p>
+            </div>
+            <div class="footer-links">
+                <div class="link-group">
+                    <h4>Product</h4>
+                    <a href="processor.html">Start Analysis</a>
+                    <a href="#">Documentation</a>
+                    <a href="#">API</a>
+                </div>
+                <div class="link-group">
+                    <h4>Legal</h4>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            &copy; 2025 Pitch2D Analytics. All rights reserved.
+        </div>
+    </footer>
+
 </body>
 </html>
