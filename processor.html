@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitch2D - Procesare Video</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(15, 32, 39, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.6rem 1.5rem;
+            background: transparent;
+            border: 2px solid #00d4ff;
+            color: #00d4ff;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .nav-btn:hover {
+            background: #00d4ff;
+            color: #0f2027;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 6rem auto 2rem;
+            padding: 2rem;
+        }
+
+        .upload-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 2px dashed #00d4ff;
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .upload-section.dragover {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: #00ff88;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .upload-section h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #00d4ff;
+        }
+
+        .upload-section p {
+            color: #b0e0e6;
+            margin-bottom: 2rem;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .file-input {
+            opacity: 0;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-label {
+            display: inline-block;
+            padding: 1rem 3rem;
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            color: #0f2027;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .file-label:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 212, 255, 0.5);
+        }
+
+        .processing-section {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .processing-section.active {
+            display: block;
+        }
+
+        .progress-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-bar {
+            height: 30px;
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            width: 0%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #0f2027;
+        }
+
+        .status-logs {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .log-entry {
+            padding: 0.3rem 0;
+            color: #b0e0e6;
+        }
+
+        .log-entry.success {
+            color: #00ff88;
+        }
+
+        .log-entry.error {
+            color: #ff4444;
+        }
+
+        .log-entry.info {
+            color: #00d4ff;
+        }
+
+        .results-section {
+            display: none;
+            gap: 2rem;
+        }
+
+        .results-section.active {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .video-player, .canvas-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 1rem;
+        }
+
+        .video-player h3, .canvas-container h3 {
+            color: #00d4ff;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        video, canvas {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        #pitch2d {
+            background: #1a472a;
+            border: 3px solid #ffffff;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 0.8rem 2rem;
+            background: rgba(0, 212, 255, 0.2);
+            border: 2px solid #00d4ff;
+            color: #00d4ff;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover:not(:disabled) {
+            background: #00d4ff;
+            color: #0f2027;
+            transform: translateY(-2px);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .control-btn.download {
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            color: #0f2027;
+            border: none;
+        }
+
+        .timer-warning {
+            background: rgba(255, 68, 68, 0.1);
+            border: 2px solid #ff4444;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            text-align: center;
+            color: #ff4444;
+            font-weight: bold;
+        }
+
+        .stats-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 3px solid #00d4ff;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .stat-label {
+            color: #b0e0e6;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 968px) {
+            .results-section.active {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">⚽ Pitch2D</div>
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-btn">Acasă</a>
+            <a href="processor.html" class="nav-btn">Procesare</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="uploadSection" class="upload-section">
+            <div class="upload-icon">🎥</div>
+            <h2>Încarcă Videoclip de Fotbal</h2>
+            <p>Trage și lasă fișierul aici sau selectează din computer<br>
+            Format acceptat: MP4, AVI, MOV, WebM (max 500MB)</p>
+            <div class="file-input-wrapper">
+                <input type="file" id="videoFile" class="file-input" accept="video/mp4,video/avi,video/mov,video/webm">
+                <label for="videoFile" class="file-label">Selectează Video</label>
+            </div>
+        </div>
+
+        <div id="processingSection" class="processing-section">
+            <h2 style="color: #00d4ff; margin-bottom: 1rem;">🔄 Procesare în Curs...</h2>
+            <div class="progress-container">
+                <div id="progressBar" class="progress-bar">0%</div>
+            </div>
+            <div style="margin: 1rem 0;">
+                <strong style="color: #00d4ff;">Status: </strong>
+                <span id="currentStatus" style="color: #b0e0e6;">Inițializare...</span>
+            </div>
+            <div class="status-logs" id="statusLogs"></div>
+        </div>
+
+        <div id="resultsSection" class="results-section">
+            <div class="video-player">
+                <h3>📹 Video Original</h3>
+                <video id="originalVideo" controls></video>
+                <div class="controls">
+                    <button class="control-btn" id="playBtn">▶️ Play</button>
+                    <button class="control-btn" id="pauseBtn">⏸️ Pause</button>
+                    <button class="control-btn" id="restartBtn">🔄 Restart</button>
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <h3>🎯 Vizualizare 2D</h3>
+                <canvas id="pitch2d" width="800" height="600"></canvas>
+                <div class="controls">
+                    <button class="control-btn download" id="downloadBtn">💾 Descarcă Video 2D</button>
+                    <button class="control-btn" id="resetBtn">🔄 Procesare Nouă</button>
+                </div>
+                <div class="timer-warning" id="timerWarning">
+                    ⏱️ Timp rămas: <span id="timeLeft">30:00</span><br>
+                    Sesiunea se va încheia automat. Descarcă videoul înainte!
+                </div>
+            </div>
+        </div>
+
+        <div id="statsPanel" class="stats-panel" style="display: none;">
+            <h3 style="color: #00d4ff; margin-bottom: 1rem;">📊 Statistici Analiză</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="playersDetected">0</div>
+                    <div class="stat-label">Jucători Detectați</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="framesProcessed">0</div>
+                    <div class="stat-label">Cadre Procesate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="processingTime">0s</div>
+                    <div class="stat-label">Timp Procesare</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="accuracy">0%</div>
+                    <div class="stat-label">Acuratețe Medie</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let videoFile = null;
+        let sessionTimer = null;
+        let timeRemaining = 1800; // 30 minutes in seconds
+        let isProcessing = false;
+        let detectionData = [];
+        let currentFrame = 0;
+        let animationId = null;
+
+        // Elements
+        const uploadSection = document.getElementById('uploadSection');
+        const processingSection = document.getElementById('processingSection');
+        const resultsSection = document.getElementById('resultsSection');
+        const statsPanel = document.getElementById('statsPanel');
+        const videoFileInput = document.getElementById('videoFile');
+        const progressBar = document.getElementById('progressBar');
+        const statusLogs = document.getElementById('statusLogs');
+        const currentStatus = document.getElementById('currentStatus');
+        const originalVideo = document.getElementById('originalVideo');
+        const pitch2dCanvas = document.getElementById('pitch2d');
+        const ctx = pitch2dCanvas.getContext('2d');
+
+        // Drag and drop handlers
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0]);
+            }
+        });
+
+        videoFileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+
+        // File upload handler
+        function handleFileUpload(file) {
+            const validTypes = ['video/mp4', 'video/avi', 'video/quicktime', 'video/webm', 'video/x-msvideo'];
+            
+            if (!validTypes.includes(file.type)) {
+                alert('⚠️ Format invalid! Te rugăm să încarci un fișier video valid (MP4, AVI, MOV, WebM).');
+                return;
+            }
+
+            if (file.size > 500 * 1024 * 1024) {
+                alert('⚠️ Fișierul este prea mare! Dimensiunea maximă este 500MB.');
+                return;
+            }
+
+            videoFile = file;
+            startProcessing();
+        }
+
+        // Start processing
+        function startProcessing() {
+            uploadSection.style.display = 'none';
+            processingSection.classList.add('active');
+            isProcessing = true;
+
+            addLog('🚀 Inițializare proces de analiză...', 'info');
+            simulateProcessing();
+        }
+
+        // Simulate video processing (în realitate ar fi backend cu YOLO)
+        async function simulateProcessing() {
+            const steps = [
+                { progress: 10, status: 'Încărcare video...', log: '📹 Video încărcat cu succes' },
+                { progress: 20, status: 'Detectare teren și calibrare cameră...', log: '🎯 Teren detectat - linii identificate' },
+                { progress: 35, status: 'Inițializare YOLO v8...', log: '🤖 Model YOLO încărcat' },
+                { progress: 50, status: 'Detectare jucători în fiecare cadru...', log: '👥 Detectare jucători în progres...' },
+                { progress: 65, status: 'Clasificare echipe și identificare tricouri...', log: '👕 Echipe clasificate - Echipa A (albastru) vs Echipa B (roșu)' },
+                { progress: 75, status: 'Tracking jucători (StrongSORT)...', log: '📍 Tracking activat - 22 jucători urmăriți' },
+                { progress: 85, status: 'Recunoaștere numere tricouri...', log: '🔢 Numere identificate pentru 18/22 jucători' },
+                { progress: 95, status: 'Generare vizualizare 2D...', log: '🎨 Creeare animație 2D' },
+                { progress: 100, status: 'Finalizat!', log: '✅ Procesare completă! Gata pentru vizualizare' }
+            ];
+
+            for (let step of steps) {
+                await sleep(800);
+                updateProgress(step.progress, step.status);
+                addLog(step.log, step.progress === 100 ? 'success' : 'info');
+            }
+
+            await sleep(500);
+            completeProcessing();
+        }
+
+        function updateProgress(percent, status) {
+            progressBar.style.width = percent + '%';
+            progressBar.textContent = percent + '%';
+            currentStatus.textContent = status;
+        }
+
+        function addLog(message, type = 'info') {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            statusLogs.appendChild(logEntry);
+            statusLogs.scrollTop = statusLogs.scrollHeight;
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Complete processing
+        function completeProcessing() {
+            processingSection.classList.remove('active');
+            resultsSection.classList.add('active');
+            statsPanel.style.display = 'block';
+            
+            // Load original video
+            originalVideo.src = URL.createObjectURL(videoFile);
+            
+            // Generate mock detection data
+            generateMockDetectionData();
+            
+            // Start session timer
+            startSessionTimer();
+            
+            // Update stats
+            updateStats();
+            
+            // Start 2D visualization
+            originalVideo.addEventListener('loadedmetadata', () => {
+                drawPitch();
+                startVisualization();
+            });
+        }
+
+        // Generate mock detection data
+        function generateMockDetectionData() {
+            // Simulare date pentru 300 de cadre (10 secunde la 30fps)
+            for (let frame = 0; frame < 300; frame++) {
+                const frameData = {
+                    frame: frame,
+                    players: []
+                };
+                
+                // Team A (blue) - 11 players
+                for (let i = 0; i < 11; i++) {
+                    frameData.players.push({
+                        id: `A${i + 1}`,
+                        team: 'A',
+                        x: 100 + Math.random() * 600 + Math.sin(frame * 0.05 + i) * 50,
+                        y: 100 + Math.random() * 400 + Math.cos(frame * 0.05 + i) * 50,
+                        number: i + 1,
+                        role: i === 0 ? 'GK' : 'Player'
+                    });
+                }
+                
+                // Team B (red) - 11 players
+                for (let i = 0; i < 11; i++) {
+                    frameData.players.push({
+                        id: `B${i + 1}`,
+                        team: 'B',
+                        x: 100 + Math.random() * 600 + Math.sin(frame * 0.05 + i + Math.PI) * 50,
+                        y: 100 + Math.random() * 400 + Math.cos(frame * 0.05 + i + Math.PI) * 50,
+                        number: i + 1,
+                        role: i === 0 ? 'GK' : 'Player'
+                    });
+                }
+                
+                detectionData.push(frameData);
+            }
+        }
+
+        // Draw pitch
+        function drawPitch() {
+            const w = pitch2dCanvas.width;
+            const h = pitch2dCanvas.height;
+            
+            // Background
+            ctx.fillStyle = '#1a472a';
+            ctx.fillRect(0, 0, w, h);
+            
+            // Lines
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            
+            // Outer lines
+            ctx.strokeRect(50, 50, w - 100, h - 100);
+            
+            // Center line
+            ctx.beginPath();
+            ctx.moveTo(w / 2, 50);
+            ctx.lineTo(w / 2, h - 50);
+            ctx.stroke();
+            
+            // Center circle
+            ctx.beginPath();
+            ctx.arc(w / 2, h / 2, 60, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Center dot
+            ctx.beginPath();
+            ctx.arc(w / 2, h / 2, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Penalty areas
+            ctx.strokeRect(50, h / 2 - 100, 80, 200);
+            ctx.strokeRect(w - 130, h / 2 - 100, 80, 200);
+            
+            // Goal areas
+            ctx.strokeRect(50, h / 2 - 50, 40, 100);
+            ctx.strokeRect(w - 90, h / 2 - 50, 40, 100);
+        }
+
+        // Start visualization
+        function startVisualization() {
+            originalVideo.addEventListener('timeupdate', () => {
+                const fps = 30;
+                currentFrame = Math.floor(originalVideo.currentTime * fps);
+                if (currentFrame < detectionData.length) {
+                    drawFrame(currentFrame);
+                }
+            });
+        }
+
+        // Draw frame
+        function drawFrame(frameIndex) {
+            drawPitch();
+            
+            const frameData = detectionData[frameIndex];
+            if (!frameData) return;
+            
+            frameData.players.forEach(player => {
+                // Draw player
+                ctx.beginPath();
+                ctx.arc(player.x, player.y, 12, 0, Math.PI * 2);
+                ctx.fillStyle = player.team === 'A' ? '#0066ff' : '#ff3333';
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Draw number
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 10px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(player.number, player.x, player.y);
+                
+                // Draw role for goalkeeper
+                if (player.role === 'GK') {
+                    ctx.fillStyle = player.team === 'A' ? '#0066ff' : '#ff3333';
+                    ctx.font = 'bold 8px Arial';
+                    ctx.fillText('GK', player.x, player.y - 20);
+                }
+            });
+        }
+
+        // Session timer
+        function startSessionTimer() {
+            document.getElementById('timerWarning').style.display = 'block';
+            
+            sessionTimer = setInterval(() => {
+                timeRemaining--;
+                
+                const minutes = Math.floor(timeRemaining / 60);
+                const seconds = timeRemaining % 60;
+                document.getElementById('timeLeft').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeRemaining <= 0) {
+                    clearInterval(sessionTimer);
+                    alert('⏱️ Sesiunea a expirat! Datele au fost șterse. Vei fi redirecționat către pagina principală.');
+                    window.location.href = 'index.html';
+                }
+            }, 1000);
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('playersDetected').textContent = '22';
+            document.getElementById('framesProcessed').textContent = '300';
+            document.getElementById('processingTime').textContent = '8.5s';
+            document.getElementById('accuracy').textContent = '94.2%';
+        }
+
+        // Control buttons
+        document.getElementById('playBtn').addEventListener('click', () => originalVideo.play());
+        document.getElementById('pauseBtn').addEventListener('click', () => originalVideo.pause());
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            originalVideo.currentTime = 0;
+            originalVideo.play();
+        });
+
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            // Simulare download - în realitate ar genera video 2D
+            alert('💾 Download inițiat! Videoul 2D va fi salvat în câteva momente.\n\n📁 Format: MP4 (1280x720)\n⏱️ Durată: ' + Math.floor(originalVideo.duration) + 's\n\n✅ Poți continua să descarci chiar dacă dai refresh!');
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if (confirm('🔄 Sigur vrei să începi o procesare nouă? Datele curente vor fi șterse.')) {
+                window.location.href = 'processor.html';
+            }
+        });
+
+        // Warn before leaving
+        window.addEventListener('beforeunload', (e) => {
+            if (resultsSection.classList.contains('active')) {
+                e.preventDefault();
+                e.returnValue = '⚠️ Dacă părăsești pagina, datele procesate vor fi șterse! Ai descărcat videoul 2D?';
+            }
+        });
+
+        // Clear session on refresh
+        window.addEventListener('load', () => {
+            if (performance.navigation.type === 1) {
+                console.log('Pagina a fost reîncărcată - sesiunea anterioară a fost ștearsă.');
+            }
+        });
+    </script>
+</body>
+</html>
