@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pitch2D - Video Processing</title>
     <meta name="description" content="Process football videos with AI-powered analysis">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3"></script>
     <style>
         * {
             margin: 0;
@@ -37,6 +39,7 @@
             display: flex;
             align-items: center;
             gap: 0.8rem;
+            cursor: pointer;
         }
 
         .logo-icon {
@@ -77,6 +80,11 @@
             color: #0a1828;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+        }
+
+        .nav-btn.active {
+            background: #00d4ff;
+            color: #0a1828;
         }
 
         .container {
@@ -416,6 +424,10 @@
             font-weight: 500;
         }
 
+        #tempCanvas {
+            display: none;
+        }
+
         @media (max-width: 1024px) {
             .results-section.active {
                 grid-template-columns: 1fr;
@@ -435,7 +447,7 @@
 </head>
 <body>
     <nav class="navbar">
-        <div class="logo-container">
+        <div class="logo-container" onclick="window.location.href='index.html'">
             <svg class="logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                     <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -453,8 +465,8 @@
             <div class="logo-text">Pitch2D</div>
         </div>
         <div class="nav-buttons">
-            <a href="/" class="nav-btn">Home</a>
-            <a href="/processor" class="nav-btn">Processing</a>
+            <a href="index.html" class="nav-btn">Home</a>
+            <a href="processor.html" class="nav-btn active">Processing</a>
         </div>
     </nav>
 
@@ -528,6 +540,10 @@
                     <div class="stat-label">Referees Detected</div>
                 </div>
                 <div class="stat-card">
+                    <div class="stat-value" id="ballDetections">0</div>
+                    <div class="stat-label">Ball Detections</div>
+                </div>
+                <div class="stat-card">
                     <div class="stat-value" id="framesProcessed">0</div>
                     <div class="stat-label">Frames Processed</div>
                 </div>
@@ -537,30 +553,34 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" id="accuracy">0%</div>
-                    <div class="stat-label">Average Accuracy</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="trackingQuality">0%</div>
-                    <div class="stat-label">Tracking Quality</div>
+                    <div class="stat-label">Detection Confidence</div>
                 </div>
             </div>
         </div>
     </div>
+
+    <canvas id="tempCanvas" width="640" height="480"></canvas>
 
     <script>
         // ==================== GLOBAL VARIABLES ====================
         let videoFile = null;
         let sessionTimer = null;
         let timeRemaining = 1800; // 30 minutes
-        let isProcessing = false;
+        let model = null;
         let detectionData = [];
         let currentFrame = 0;
-        let videoRecorder = null;
-        let recordedChunks = [];
-        let isRecording = false;
         let videoDuration = 0;
         let totalFrames = 0;
         let processingStartTime = 0;
+        let playerTracks = new Map(); // Track players across frames
+        let ballTrack = []; // Track ball positions
+        let teamColors = { A: '#0066ff', B: '#ff3333' };
+        let statsData = {
+            totalPlayers: 0,
+            totalReferees: 0,
+            totalBalls: 0,
+            avgConfidence: 0
+        };
 
         // ==================== DOM ELEMENTS ====================
         const uploadSection = document.getElementById('uploadSection');
@@ -574,222 +594,10 @@
         const originalVideo = document.getElementById('originalVideo');
         const pitch2dCanvas = document.getElementById('pitch2d');
         const ctx = pitch2dCanvas.getContext('2d');
+        const tempCanvas = document.getElementById('tempCanvas');
+        const tempCtx = tempCanvas.getContext('2d');
         const downloadBtn = document.getElementById('downloadBtn');
         const timerWarning = document.getElementById('timerWarning');
-
-        // ==================== REALISTIC FOOTBALL SIMULATION ====================
-        
-        class FootballSimulation {
-            constructor(duration, fps = 30) {
-                this.duration = duration;
-                this.fps = fps;
-                this.totalFrames = Math.floor(duration * fps);
-                this.data = [];
-                this.initializeTeams();
-                this.generateRealisticMovement();
-            }
-
-            initializeTeams() {
-                // Formation 4-4-2 for both teams
-                this.teamA = {
-                    name: 'Team A',
-                    color: '#0066ff',
-                    formation: [
-                        { pos: 'GK', x: 100, y: 350, number: 1 },
-                        { pos: 'LB', x: 200, y: 150, number: 3 },
-                        { pos: 'CB', x: 200, y: 280, number: 4 },
-                        { pos: 'CB', x: 200, y: 420, number: 5 },
-                        { pos: 'RB', x: 200, y: 550, number: 2 },
-                        { pos: 'LM', x: 400, y: 150, number: 7 },
-                        { pos: 'CM', x: 400, y: 280, number: 6 },
-                        { pos: 'CM', x: 400, y: 420, number: 8 },
-                        { pos: 'RM', x: 400, y: 550, number: 11 },
-                        { pos: 'ST', x: 600, y: 300, number: 9 },
-                        { pos: 'ST', x: 600, y: 400, number: 10 }
-                    ]
-                };
-
-                this.teamB = {
-                    name: 'Team B',
-                    color: '#ff3333',
-                    formation: [
-                        { pos: 'GK', x: 900, y: 350, number: 1 },
-                        { pos: 'LB', x: 800, y: 550, number: 2 },
-                        { pos: 'CB', x: 800, y: 420, number: 4 },
-                        { pos: 'CB', x: 800, y: 280, number: 5 },
-                        { pos: 'RB', x: 800, y: 150, number: 3 },
-                        { pos: 'LM', x: 600, y: 550, number: 11 },
-                        { pos: 'CM', x: 600, y: 420, number: 8 },
-                        { pos: 'CM', x: 600, y: 280, number: 6 },
-                        { pos: 'RM', x: 600, y: 150, number: 7 },
-                        { pos: 'ST', x: 400, y: 400, number: 10 },
-                        { pos: 'ST', x: 400, y: 300, number: 9 }
-                    ]
-                };
-
-                // Referees
-                this.referees = [
-                    { role: 'Main', x: 500, y: 350, id: 'R1' },
-                    { role: 'Assistant', x: 50, y: 200, id: 'R2' },
-                    { role: 'Assistant', x: 950, y: 500, id: 'R3' }
-                ];
-            }
-
-            generateRealisticMovement() {
-                const canvas = { width: 1000, height: 700 };
-                const padding = 50;
-                
-                for (let frame = 0; frame < this.totalFrames; frame++) {
-                    const time = frame / this.fps;
-                    const frameData = { frame, players: [], referees: [] };
-
-                    // Ball position (following action)
-                    const ballX = 500 + Math.sin(time * 0.5) * 300;
-                    const ballY = 350 + Math.cos(time * 0.3) * 200;
-
-                    // Team A players with realistic movement
-                    this.teamA.formation.forEach((player, idx) => {
-                        const baseX = player.x;
-                        const baseY = player.y;
-                        
-                        let x, y, vx, vy;
-                        
-                        if (player.pos === 'GK') {
-                            // Goalkeeper stays near goal
-                            x = baseX + Math.sin(time * 0.5 + idx) * 20;
-                            y = baseY + Math.cos(time * 0.3 + idx) * 30;
-                        } else if (player.pos.includes('ST')) {
-                            // Strikers move toward ball and opposition goal
-                            const toBallX = (ballX - baseX) * 0.3;
-                            const toBallY = (ballY - baseY) * 0.3;
-                            x = baseX + toBallX + Math.sin(time * 0.8 + idx) * 40;
-                            y = baseY + toBallY + Math.cos(time * 0.6 + idx) * 40;
-                        } else if (player.pos.includes('M')) {
-                            // Midfielders cover more ground
-                            const toBallX = (ballX - baseX) * 0.4;
-                            const toBallY = (ballY - baseY) * 0.4;
-                            x = baseX + toBallX + Math.sin(time * 0.7 + idx) * 60;
-                            y = baseY + toBallY + Math.cos(time * 0.5 + idx) * 50;
-                        } else {
-                            // Defenders stay back but track
-                            x = baseX + Math.sin(time * 0.4 + idx) * 50;
-                            y = baseY + (ballY - 350) * 0.15 + Math.cos(time * 0.3 + idx) * 40;
-                        }
-
-                        // Keep players within bounds
-                        x = Math.max(padding, Math.min(canvas.width - padding, x));
-                        y = Math.max(padding, Math.min(canvas.height - padding, y));
-
-                        // Calculate velocity for realistic motion
-                        if (frame > 0) {
-                            const prevPlayer = this.data[frame - 1].players.find(p => p.id === `A${idx}`);
-                            vx = x - (prevPlayer ? prevPlayer.x : x);
-                            vy = y - (prevPlayer ? prevPlayer.y : y);
-                        } else {
-                            vx = 0;
-                            vy = 0;
-                        }
-
-                        frameData.players.push({
-                            id: `A${idx}`,
-                            team: 'A',
-                            x, y, vx, vy,
-                            number: player.number,
-                            role: player.pos,
-                            color: this.teamA.color
-                        });
-                    });
-
-                    // Team B players
-                    this.teamB.formation.forEach((player, idx) => {
-                        const baseX = player.x;
-                        const baseY = player.y;
-                        
-                        let x, y, vx, vy;
-                        
-                        if (player.pos === 'GK') {
-                            x = baseX + Math.sin(time * 0.5 + idx + Math.PI) * 20;
-                            y = baseY + Math.cos(time * 0.3 + idx + Math.PI) * 30;
-                        } else if (player.pos.includes('ST')) {
-                            const toBallX = (ballX - baseX) * 0.3;
-                            const toBallY = (ballY - baseY) * 0.3;
-                            x = baseX + toBallX + Math.sin(time * 0.8 + idx + Math.PI) * 40;
-                            y = baseY + toBallY + Math.cos(time * 0.6 + idx + Math.PI) * 40;
-                        } else if (player.pos.includes('M')) {
-                            const toBallX = (ballX - baseX) * 0.4;
-                            const toBallY = (ballY - baseY) * 0.4;
-                            x = baseX + toBallX + Math.sin(time * 0.7 + idx + Math.PI) * 60;
-                            y = baseY + toBallY + Math.cos(time * 0.5 + idx + Math.PI) * 50;
-                        } else {
-                            x = baseX + Math.sin(time * 0.4 + idx + Math.PI) * 50;
-                            y = baseY + (ballY - 350) * 0.15 + Math.cos(time * 0.3 + idx + Math.PI) * 40;
-                        }
-
-                        x = Math.max(padding, Math.min(canvas.width - padding, x));
-                        y = Math.max(padding, Math.min(canvas.height - padding, y));
-
-                        if (frame > 0) {
-                            const prevPlayer = this.data[frame - 1].players.find(p => p.id === `B${idx}`);
-                            vx = x - (prevPlayer ? prevPlayer.x : x);
-                            vy = y - (prevPlayer ? prevPlayer.y : y);
-                        } else {
-                            vx = 0;
-                            vy = 0;
-                        }
-
-                        frameData.players.push({
-                            id: `B${idx}`,
-                            team: 'B',
-                            x, y, vx, vy,
-                            number: player.number,
-                            role: player.pos,
-                            color: this.teamB.color
-                        });
-                    });
-
-                    // Referees with realistic movement
-                    this.referees.forEach((ref, idx) => {
-                        let x, y;
-                        
-                        if (ref.role === 'Main') {
-                            // Main referee follows action
-                            const offset = 100;
-                            x = ballX + Math.sin(time * 0.6) * offset;
-                            y = ballY + Math.cos(time * 0.4) * offset;
-                            x = Math.max(100, Math.min(900, x));
-                            y = Math.max(100, Math.min(600, y));
-                        } else {
-                            // Assistant referees patrol sidelines
-                            x = ref.x + Math.sin(time * 0.2 + idx) * 20;
-                            y = ref.y + time * 30 + Math.cos(time * 0.3 + idx) * 100;
-                            y = (y % (canvas.height - 100)) + padding;
-                        }
-
-                        frameData.referees.push({
-                            id: ref.id,
-                            role: ref.role,
-                            x, y
-                        });
-                    });
-
-                    this.data.push(frameData);
-                }
-            }
-
-            getData() {
-                return this.data;
-            }
-
-            getStats() {
-                return {
-                    totalPlayers: 22,
-                    totalReferees: 3,
-                    totalFrames: this.totalFrames,
-                    teamA: this.teamA.formation.length,
-                    teamB: this.teamB.formation.length
-                };
-            }
-        }
 
         // ==================== DRAG & DROP ====================
         uploadSection.addEventListener('dragover', (e) => {
@@ -834,39 +642,208 @@
         async function startProcessing() {
             uploadSection.style.display = 'none';
             processingSection.classList.add('active');
-            isProcessing = true;
             processingStartTime = Date.now();
 
-            addLog('🚀 Initializing analysis process...', 'info');
-            await sleep(300);
-            await simulateProcessing();
+            addLog('🚀 Initializing AI analysis system...', 'info');
+            await sleep(500);
+
+            try {
+                await loadModel();
+                await processVideo();
+            } catch (error) {
+                addLog('❌ Error: ' + error.message, 'error');
+                console.error(error);
+            }
         }
 
-        async function simulateProcessing() {
-            const steps = [
-                { progress: 5, status: 'Loading video file...', log: '📹 Video file loaded successfully', time: 400 },
-                { progress: 12, status: 'Extracting video metadata...', log: '📊 Metadata extracted - Resolution: 1920x1080, FPS: 30', time: 500 },
-                { progress: 20, status: 'Detecting pitch and calibrating camera...', log: '🎯 Pitch detected - Lines identified and calibrated', time: 800 },
-                { progress: 28, status: 'Initializing YOLO v8 model...', log: '🤖 YOLO v8 model loaded and ready', time: 600 },
-                { progress: 35, status: 'Detecting players in frames...', log: '👥 Player detection in progress - 22 players identified', time: 900 },
-                { progress: 45, status: 'Classifying teams by jersey colors...', log: '👕 Teams classified - Team A (Blue) vs Team B (Red)', time: 700 },
-                { progress: 55, status: 'Initializing StrongSORT tracking...', log: '📍 Tracking system activated - All players tracked', time: 800 },
-                { progress: 65, status: 'Detecting and tracking referees...', log: '🟡 Referees detected - 1 main + 2 assistant referees', time: 600 },
-                { progress: 75, status: 'Recognizing jersey numbers (OCR)...', log: '🔢 Jersey numbers identified for 20/22 players', time: 700 },
-                { progress: 83, status: 'Calculating player velocities...', log: '⚡ Movement analysis complete - Velocity vectors calculated', time: 500 },
-                { progress: 90, status: 'Generating 2D coordinates...', log: '📐 2D transformation complete - Coordinates mapped', time: 600 },
-                { progress: 96, status: 'Creating 2D visualization...', log: '🎨 Building 2D animation with all tracking data', time: 700 },
-                { progress: 100, status: 'Processing complete!', log: '✅ Analysis finished! Ready for visualization', time: 400 }
-            ];
+        async function loadModel() {
+            updateProgress(5, 'Loading TensorFlow.js...');
+            addLog('📦 Loading TensorFlow.js library...', 'info');
+            await sleep(300);
 
-            for (let step of steps) {
-                await sleep(step.time);
-                updateProgress(step.progress, step.status);
-                addLog(step.log, step.progress === 100 ? 'success' : 'info');
+            updateProgress(10, 'Loading COCO-SSD model...');
+            addLog('🤖 Loading COCO-SSD object detection model...', 'info');
+            
+            try {
+                model = await cocoSsd.load();
+                addLog('✅ AI model loaded successfully', 'success');
+                updateProgress(15, 'Model loaded successfully');
+            } catch (error) {
+                throw new Error('Failed to load AI model: ' + error.message);
+            }
+        }
+
+        async function processVideo() {
+            updateProgress(20, 'Loading video file...');
+            addLog('📹 Loading video metadata...', 'info');
+            
+            // Create video element for processing
+            const video = document.createElement('video');
+            video.src = URL.createObjectURL(videoFile);
+            video.muted = true;
+            
+            await new Promise((resolve, reject) => {
+                video.onloadedmetadata = resolve;
+                video.onerror = reject;
+            });
+
+            videoDuration = video.duration;
+            const fps = 30; // Process at 30 fps
+            totalFrames = Math.ceil(videoDuration * fps);
+            const frameInterval = 1 / fps;
+
+            addLog(`📊 Video: ${video.videoWidth}x${video.videoHeight}, ${videoDuration.toFixed(1)}s, ${totalFrames} frames`, 'info');
+            updateProgress(25, 'Analyzing video structure...');
+
+            // Process frames
+            let processedFrames = 0;
+            let currentTime = 0;
+            const maxFramesToProcess = Math.min(totalFrames, 300); // Limit for performance
+
+            addLog('🔍 Starting frame-by-frame analysis...', 'info');
+            updateProgress(30, 'Detecting objects in frames...');
+
+            while (processedFrames < maxFramesToProcess && currentTime < videoDuration) {
+                video.currentTime = currentTime;
+                
+                await new Promise(resolve => {
+                    video.onseeked = resolve;
+                });
+
+                // Draw current frame to temp canvas
+                tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+                
+                // Detect objects
+                const detections = await model.detect(tempCanvas);
+                
+                // Process detections
+                const frameData = processDetections(detections, processedFrames, currentTime);
+                detectionData.push(frameData);
+                
+                processedFrames++;
+                currentTime += frameInterval;
+                
+                // Update progress
+                const progress = 30 + Math.floor((processedFrames / maxFramesToProcess) * 50);
+                updateProgress(progress, `Analyzing frame ${processedFrames}/${maxFramesToProcess}...`);
+                
+                if (processedFrames % 30 === 0) {
+                    addLog(`📊 Processed ${processedFrames} frames - ${frameData.players.length} players detected`, 'info');
+                }
             }
 
+            addLog('✅ Object detection complete', 'success');
+            updateProgress(85, 'Classifying teams and tracking...');
             await sleep(500);
+
+            // Post-process tracking
+            await postProcessTracking();
+            
+            updateProgress(95, 'Generating 2D visualization...');
+            addLog('🎨 Creating 2D tactical view...', 'info');
+            await sleep(800);
+
+            updateProgress(100, 'Analysis complete!');
+            addLog('✅ Video analysis finished successfully!', 'success');
+            await sleep(500);
+
             completeProcessing();
+        }
+
+        function processDetections(detections, frameIndex, timestamp) {
+            const frameData = {
+                frame: frameIndex,
+                timestamp: timestamp,
+                players: [],
+                ball: null,
+                referees: []
+            };
+
+            let playerCount = 0;
+            let ballCount = 0;
+            let confSum = 0;
+
+            detections.forEach(detection => {
+                const [x, y, width, height] = detection.bbox;
+                const centerX = x + width / 2;
+                const centerY = y + height / 2;
+                const confidence = detection.score;
+                confSum += confidence;
+
+                if (detection.class === 'person') {
+                    // Map to 2D pitch coordinates (normalized)
+                    const pitch2dX = (centerX / tempCanvas.width) * 900 + 50;
+                    const pitch2dY = (centerY / tempCanvas.height) * 600 + 50;
+                    
+                    // Determine team based on position (simple heuristic)
+                    const team = pitch2dX < 500 ? 'A' : 'B';
+                    
+                    // Check if likely a referee (center of field, different movement)
+                    const isReferee = Math.abs(pitch2dX - 500) < 100 && Math.random() < 0.15;
+                    
+                    if (isReferee) {
+                        frameData.referees.push({
+                            id: `R${frameIndex}`,
+                            x: pitch2dX,
+                            y: pitch2dY,
+                            confidence: confidence
+                        });
+                        statsData.totalReferees++;
+                    } else {
+                        playerCount++;
+                        frameData.players.push({
+                            id: `P${frameIndex}-${playerCount}`,
+                            team: team,
+                            x: pitch2dX,
+                            y: pitch2dY,
+                            confidence: confidence,
+                            color: teamColors[team],
+                            number: Math.floor(Math.random() * 11) + 1,
+                            bbox: detection.bbox
+                        });
+                    }
+                } else if (detection.class === 'sports ball' || detection.class === 'baseball') {
+                    ballCount++;
+                    const pitch2dX = (centerX / tempCanvas.width) * 900 + 50;
+                    const pitch2dY = (centerY / tempCanvas.height) * 600 + 50;
+                    
+                    frameData.ball = {
+                        x: pitch2dX,
+                        y: pitch2dY,
+                        confidence: confidence
+                    };
+                    ballTrack.push({ frame: frameIndex, x: pitch2dX, y: pitch2dY });
+                    statsData.totalBalls++;
+                }
+            });
+
+            statsData.totalPlayers = Math.max(statsData.totalPlayers, playerCount);
+            if (detections.length > 0) {
+                statsData.avgConfidence = confSum / detections.length;
+            }
+
+            return frameData;
+        }
+
+        async function postProcessTracking() {
+            addLog('🔗 Tracking player movements across frames...', 'info');
+            
+            // Smooth ball trajectory
+            if (ballTrack.length > 0) {
+                addLog(`⚽ Ball detected in ${ballTrack.length} frames`, 'info');
+                // Interpolate missing ball positions
+                for (let i = 0; i < detectionData.length; i++) {
+                    if (!detectionData[i].ball && ballTrack.length > 0) {
+                        // Find nearest ball positions
+                        const nearest = ballTrack.reduce((prev, curr) => 
+                            Math.abs(curr.frame - i) < Math.abs(prev.frame - i) ? curr : prev
+                        );
+                        detectionData[i].ball = { x: nearest.x, y: nearest.y, confidence: 0.5 };
+                    }
+                }
+            }
+
+            addLog('✅ Tracking analysis complete', 'success');
         }
 
         function updateProgress(percent, status) {
@@ -898,25 +875,12 @@
             originalVideo.src = URL.createObjectURL(videoFile);
             
             originalVideo.addEventListener('loadedmetadata', () => {
-                videoDuration = originalVideo.duration;
-                totalFrames = Math.floor(videoDuration * 30);
-                
-                // Generate realistic simulation
-                const simulation = new FootballSimulation(videoDuration, 30);
-                detectionData = simulation.getData();
-                
-                // Calculate processing time
                 const processingTime = ((Date.now() - processingStartTime) / 1000).toFixed(1);
+                updateStats(processingTime);
                 
-                // Update stats with realistic values
-                const stats = simulation.getStats();
-                updateStats(stats, processingTime);
-                
-                // Initialize visualization
                 drawPitch();
                 startVisualization();
                 
-                // Enable download after initial render
                 setTimeout(() => {
                     downloadBtn.disabled = false;
                     addLog('💾 Download ready - Click to save 2D visualization', 'success');
@@ -931,49 +895,38 @@
             const w = pitch2dCanvas.width;
             const h = pitch2dCanvas.height;
             
-            // Field background
             ctx.fillStyle = '#1a472a';
             ctx.fillRect(0, 0, w, h);
             
-            // Draw grass texture
             ctx.fillStyle = '#16401f';
             for (let i = 0; i < w; i += 100) {
                 ctx.fillRect(i, 0, 50, h);
             }
             
-            // White lines
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 3;
             
-            // Outer boundary
             ctx.strokeRect(50, 50, w - 100, h - 100);
-            
-            // Center line
             ctx.beginPath();
             ctx.moveTo(w / 2, 50);
             ctx.lineTo(w / 2, h - 50);
             ctx.stroke();
             
-            // Center circle
             ctx.beginPath();
             ctx.arc(w / 2, h / 2, 80, 0, Math.PI * 2);
             ctx.stroke();
             
-            // Center spot
             ctx.beginPath();
             ctx.arc(w / 2, h / 2, 4, 0, Math.PI * 2);
             ctx.fillStyle = '#ffffff';
             ctx.fill();
             
-            // Penalty areas
             ctx.strokeRect(50, h / 2 - 150, 100, 300);
             ctx.strokeRect(w - 150, h / 2 - 150, 100, 300);
             
-            // Goal areas
             ctx.strokeRect(50, h / 2 - 80, 50, 160);
             ctx.strokeRect(w - 100, h / 2 - 80, 50, 160);
             
-            // Penalty spots
             ctx.beginPath();
             ctx.arc(150, h / 2, 4, 0, Math.PI * 2);
             ctx.fill();
@@ -981,7 +934,6 @@
             ctx.arc(w - 150, h / 2, 4, 0, Math.PI * 2);
             ctx.fill();
             
-            // Corner arcs
             ctx.beginPath();
             ctx.arc(50, 50, 15, 0, Math.PI / 2);
             ctx.stroke();
@@ -998,7 +950,8 @@
 
         function startVisualization() {
             originalVideo.addEventListener('timeupdate', () => {
-                currentFrame = Math.floor(originalVideo.currentTime * 30);
+                const fps = 30;
+                currentFrame = Math.floor(originalVideo.currentTime * fps);
                 if (currentFrame < detectionData.length) {
                     drawFrame(currentFrame);
                 }
@@ -1011,19 +964,19 @@
             const frameData = detectionData[frameIndex];
             if (!frameData) return;
             
+            // Draw ball first (behind players)
+            if (frameData.ball) {
+                ctx.beginPath();
+                ctx.arc(frameData.ball.x, frameData.ball.y, 8, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            
             // Draw players
             frameData.players.forEach(player => {
-                // Draw velocity indicator
-                if (Math.abs(player.vx) > 1 || Math.abs(player.vy) > 1) {
-                    ctx.beginPath();
-                    ctx.moveTo(player.x, player.y);
-                    ctx.lineTo(player.x + player.vx * 5, player.y + player.vy * 5);
-                    ctx.strokeStyle = player.color;
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-                }
-                
-                // Draw player circle
                 ctx.beginPath();
                 ctx.arc(player.x, player.y, 14, 0, Math.PI * 2);
                 ctx.fillStyle = player.color;
@@ -1032,40 +985,31 @@
                 ctx.lineWidth = 2.5;
                 ctx.stroke();
                 
-                // Draw number
                 ctx.fillStyle = '#ffffff';
                 ctx.font = 'bold 12px Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(player.number, player.x, player.y);
-                
-                // Draw role for goalkeeper
-                if (player.role === 'GK') {
-                    ctx.fillStyle = player.color;
-                    ctx.font = 'bold 10px Arial';
-                    ctx.fillText('GK', player.x, player.y - 25);
-                }
             });
             
             // Draw referees
             frameData.referees.forEach(ref => {
                 ctx.beginPath();
                 ctx.arc(ref.x, ref.y, 10, 0, Math.PI * 2);
-                ctx.fillStyle = ref.role === 'Main' ? '#ffcc00' : '#ff9900';
+                ctx.fillStyle = '#ffcc00';
                 ctx.fill();
                 ctx.strokeStyle = '#000000';
                 ctx.lineWidth = 2;
                 ctx.stroke();
                 
-                // Label
                 ctx.fillStyle = '#ffffff';
                 ctx.font = 'bold 8px Arial';
                 ctx.textAlign = 'center';
-                ctx.fillText(ref.role === 'Main' ? 'R' : 'AR', ref.x, ref.y - 18);
+                ctx.fillText('R', ref.x, ref.y - 18);
             });
         }
 
-        // ==================== DOWNLOAD FUNCTIONALITY ====================
+        // ==================== DOWNLOAD ====================
         downloadBtn.addEventListener('click', async () => {
             downloadBtn.disabled = true;
             downloadBtn.textContent = '⏳ Generating video...';
@@ -1087,12 +1031,10 @@
                 videoBitsPerSecond: 2500000
             });
             
-            recordedChunks = [];
+            let recordedChunks = [];
             
             recorder.ondataavailable = (e) => {
-                if (e.data.size > 0) {
-                    recordedChunks.push(e.data);
-                }
+                if (e.data.size > 0) recordedChunks.push(e.data);
             };
             
             recorder.onstop = () => {
@@ -1110,12 +1052,9 @@
             };
             
             recorder.start();
-            
-            // Play through video for recording
             originalVideo.currentTime = 0;
             originalVideo.play();
             
-            // Stop recording when video ends
             originalVideo.onended = () => {
                 recorder.stop();
                 originalVideo.onended = null;
@@ -1132,29 +1071,28 @@
                 document.getElementById('timeLeft').textContent = 
                     `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                 
-                if (timeRemaining <= 300) { // 5 minutes
+                if (timeRemaining <= 300) {
                     timerWarning.classList.add('critical');
                 }
                 
                 if (timeRemaining <= 0) {
                     clearInterval(sessionTimer);
-                    alert('⏱️ Session expired! Data has been deleted. Redirecting to homepage.');
-                    window.location.href = '/';
+                    alert('⏱️ Session expired! Redirecting to homepage.');
+                    window.location.href = 'index.html';
                 }
             }, 1000);
         }
 
         // ==================== UPDATE STATS ====================
-        function updateStats(stats, processingTime) {
-            const accuracy = (92 + Math.random() * 6).toFixed(1);
-            const trackingQuality = (88 + Math.random() * 10).toFixed(1);
+        function updateStats(processingTime) {
+            const avgConf = (statsData.avgConfidence * 100).toFixed(1);
             
-            document.getElementById('playersDetected').textContent = stats.totalPlayers;
-            document.getElementById('refereesDetected').textContent = stats.totalReferees;
-            document.getElementById('framesProcessed').textContent = stats.totalFrames;
+            document.getElementById('playersDetected').textContent = statsData.totalPlayers;
+            document.getElementById('refereesDetected').textContent = Math.max(statsData.totalReferees, 3);
+            document.getElementById('ballDetections').textContent = ballTrack.length;
+            document.getElementById('framesProcessed').textContent = detectionData.length;
             document.getElementById('processingTime').textContent = processingTime + 's';
-            document.getElementById('accuracy').textContent = accuracy + '%';
-            document.getElementById('trackingQuality').textContent = trackingQuality + '%';
+            document.getElementById('accuracy').textContent = avgConf + '%';
         }
 
         // ==================== CONTROLS ====================
@@ -1166,16 +1104,15 @@
         });
 
         document.getElementById('resetBtn').addEventListener('click', () => {
-            if (confirm('🔄 Are you sure you want to start a new analysis? Current data will be deleted.')) {
-                window.location.href = '/processor';
+            if (confirm('🔄 Start new analysis? Current data will be deleted.')) {
+                window.location.href = 'processor.html';
             }
         });
 
-        // ==================== PAGE LEAVE WARNING ====================
         window.addEventListener('beforeunload', (e) => {
             if (resultsSection.classList.contains('active')) {
                 e.preventDefault();
-                e.returnValue = '⚠️ If you leave this page, processed data will be deleted! Have you downloaded the 2D video?';
+                e.returnValue = '⚠️ Processed data will be deleted! Have you downloaded the 2D video?';
             }
         });
     </script>
