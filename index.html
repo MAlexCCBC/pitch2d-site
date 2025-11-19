@@ -5,202 +5,214 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pitch2D | AI Football Analytics Platform</title>
     <meta name="description" content="Transform match footage into tactical 2D data using advanced Computer Vision and AI.">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <style>
         :root {
             --primary: #00d4ff;
             --secondary: #00ff88;
-            --accent: #ff2469;
             --bg-dark: #0a1828;
-            --bg-glass: rgba(10, 24, 40, 0.80);
-            --glass: rgba(255,255,255,0.08);
-            --glass-border: rgba(255,255,255,0.20);
+            --bg-darker: #050c14;
+            --glass: rgba(255,255,255,0.04);
+            --glass-border: rgba(255,255,255,0.08);
             --text-main: #fff;
-            --text-muted: #8CAABF;
-            --card-vertices: polygon(0% 15%, 15% 0%, 85% 0%, 100% 15%, 100% 85%, 85% 100%, 15% 100%, 0% 85%);
+            --text-muted: #93a3b8;
+            --danger: #ff2469;
         }
-
-        html,body{margin:0;padding:0;box-sizing:border-box;}
+        * {box-sizing: border-box;}
         body {
-            font-family: 'Inter',sans-serif;
+            font-family: 'Inter', sans-serif;
             background: var(--bg-dark);
             color: var(--text-main);
+            margin: 0;
             min-height: 100vh;
+            background-image: 
+                radial-gradient(at 0% 0%, #00d4ff22 0px, transparent 60%),
+                radial-gradient(at 100% 0%, #00ff8820 0px, transparent 60%),
+                linear-gradient(135deg, #0a1828 0%, #1a2332 100%);
             overflow-x: hidden;
-            background-image: radial-gradient(ellipse 80vw 120vh at 10% 5%, #00d4ff1a 0%, #091826 90%), radial-gradient(ellipse 60vw 80vh at 90% 5%, #00ff8810 0%, transparent 85%), linear-gradient(120deg, #0a1828 50%,#0b2336 100%);
         }
-        .bg-art {
-            position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-2;pointer-events:none;
-            background: repeating-linear-gradient(120deg,rgba(255,255,255,0.019) 0 3px,transparent 3px 50px);
+        .bg-grid {
+            position: fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
         }
-        /* Navbar */
         .navbar {
-            position:fixed;top:0;left:0;width:100vw;
-            background:var(--bg-glass);backdrop-filter: blur(18px);
-            display:flex;justify-content:space-between;align-items:center;
-            padding:0.6rem 4%;z-index:1200;
-            border-bottom:1px solid var(--glass-border);
+            position: fixed;top:0;left:0;width:100%;
+            background: rgba(10,24,40,0.9);backdrop-filter: blur(16px);
+            display: flex;justify-content: space-between;align-items: center;
+            padding: 0.7rem 4%;z-index:1030;border-bottom:1px solid var(--glass-border);
         }
-        .logo-link{display:flex;align-items:center;gap:1.1rem;text-decoration:none;}
-        .logo-text{
-            font-size:2rem;font-weight:900;
-            background:linear-gradient(45deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px;
+        .logo-link {display: flex;align-items: center;gap: 1rem;text-decoration: none;}
+        .logo-text {
+            font-size: 1.7rem;font-weight: 900;
+            background: linear-gradient(45deg,var(--primary),var(--secondary));
+            -webkit-background-clip: text;-webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
         }
-        .nav-links{display:flex;gap:2.5rem;}
-        .nav-link{
-            color:var(--text-muted);font-size:1.1rem;font-weight:600;text-decoration:none;padding:0.46rem 1.1rem;border-radius:22px;transition:.23s;
+        .nav-links {display: flex;gap:1.6rem;}
+        .nav-link {
+            color: var(--text-muted);font-size:1.01rem;font-weight:600;
+            text-decoration:none;padding:0.4rem 0.7rem;border-radius:18px;transition:0.22s;
         }
-        .nav-link:hover{background:var(--glass);color:var(--primary);}
-        .btn-nav{
-            background:linear-gradient(45deg,var(--primary),var(--secondary));
-            color:var(--bg-dark);border-radius:50px;padding:0.86rem 2.2rem;
-            font-weight:800;text-decoration:none;border:none;font-size:1.04rem;
-            box-shadow:0 8px 24px #00d4ff26;transition:.26s;
+        .nav-link:hover {color:var(--primary);background:var(--glass);}
+        .btn-nav {
+            background: linear-gradient(45deg,var(--primary),var(--secondary));
+            color: var(--bg-dark);border-radius:50px;padding: 0.8rem 2.1rem;
+            font-weight:700;text-decoration:none;border:none;font-size:1rem;
+            box-shadow: 0 6px 32px #00d4ff33;transition:0.28s all;
         }
-        .btn-nav:hover{background:var(--primary);color:#111;}
-        .nav-mobile-toggle{display:none;cursor:pointer;font-size:2.25rem;color:var(--primary);}
-        @media (max-width:900px){.nav-links{gap:1.2rem;}}
-        @media (max-width:700px){
-            .nav-links{display:none;}
-            .nav-mobile-toggle{display:block;}
+        .btn-nav:hover {background:var(--primary);color:#111;}
+        .mobile-toggle {
+            display:none;cursor:pointer;font-size:2.1rem;color:var(--primary);
         }
+
         /* Hero Section */
         .hero {
-            padding:7.5rem 4% 5rem 4%;max-width:1200px;margin:0 auto;
-            display:grid;grid-template-columns:0.98fr 1.08fr;gap:3.7rem;align-items:center;min-height:75vh;
+            padding: 7rem 4% 4.5rem 4%;max-width:1200px;margin:0 auto;
+            display: grid;grid-template-columns: 0.93fr 1.07fr;gap:3.5rem;align-items: center;
+            min-height: 75vh;
         }
-        .hero-content{animation:slideUp .92s cubic-bezier(.5,.82,.32,1);}
-        .badge{
-            display:inline-flex;align-items:center;gap:0.8rem;
-            background:rgba(0,255,136,0.14);border:1px solid rgba(0,255,136,0.36);
-            border-radius:22px;color:var(--secondary);font-size:1.04rem;font-weight:800;padding:0.6rem 1.3rem;margin-bottom:1.55rem;
-            box-shadow:0 0 0.6rem #00ff8820;
+        .hero-content {animation: slideUp 0.9s cubic-bezier(.5,.82,.32,1);}
+        .badge {
+            display: inline-flex;align-items:center;gap:0.6rem;
+            background:rgba(0,255,136,0.12);border:1px solid rgba(0,255,136,0.3);
+            border-radius: 20px;color: var(--secondary);font-size: 0.95rem;font-weight:700;
+            padding:0.6rem 1.15rem;margin-bottom:1.5rem;box-shadow:0 0 0.5rem #00ff8822;
         }
-        .hero-title{font-size:3.7rem;line-height:1.14;font-weight:900;margin-bottom:1rem;}
-        .gradient-text{background:linear-gradient(45deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-        .hero-subtitle{font-size:1.2rem;color:var(--text-muted);line-height:1.65;margin-bottom:2.2rem;max-width:540px;}
-        .hero-buttons{display:flex;gap:1.2rem;margin-bottom:3rem;}
-
-        .btn-hero{
-            padding:1.1rem 2rem;background:linear-gradient(45deg,var(--primary),var(--secondary));
-            color:var(--bg-dark);border-radius:50px;font-weight:900;text-decoration:none;
-            font-size:1.11rem;box-shadow:0 6px 26px #00d4ff22;display:flex;align-items:center;gap:0.5rem;transition:.26s;
+        .hero-title {
+            font-size:3.6rem;line-height:1.1;font-weight:900;margin-bottom:1.1rem;
         }
-        .btn-hero:hover{transform:translateY(-2px);box-shadow:0 10px 36px #00d4ff22;}
-        .btn-secondary{
-            padding:1.1rem 2rem;background:transparent;border:1px solid var(--glass-border);color:var(--text-main);
-            border-radius:50px;font-weight:700;text-decoration:none;font-size:1.11rem;transition:.23s;
+        .gradient-text {
+            background: linear-gradient(45deg,var(--primary),var(--secondary));
+            -webkit-background-clip: text;-webkit-text-fill-color: transparent;
         }
-        .btn-secondary:hover{background:var(--glass);border-color:var(--primary);}
+        .hero-subtitle {
+            font-size:1.12rem;color:var(--text-muted);line-height:1.62;
+            margin-bottom:2.4rem;max-width:500px;
+        }
+        .hero-buttons {display:flex;gap:1.1rem;margin-bottom:2.6rem;}
+        .btn-hero {
+            padding: 1rem 2.1rem;background: linear-gradient(45deg,var(--primary),var(--secondary));
+            color: var(--bg-dark);border-radius:50px;font-weight:700;text-decoration:none;
+            font-size:1.1rem;transition: transform 0.28s,box-shadow 0.28s;display: flex;align-items: center;gap: 0.5rem;
+        }
+        .btn-hero:hover {transform: translateY(-2px);box-shadow:0 10px 30px #00d4ff2e;}
+        .btn-secondary {
+            padding: 1rem 2.1rem;background:transparent;border:1px solid var(--glass-border);
+            color: var(--text-main);border-radius:50px;font-weight:600;text-decoration:none;font-size:1.1rem;transition:0.22s;
+        }
+        .btn-secondary:hover {background:var(--glass);border-color:var(--primary);}
         /* Hero Visuals */
-        .hero-visual{position:relative;animation:fadeIn 1.4s cubic-bezier(.65,.43,.25,1);}
-        .pitch-abstract{
-            width:100%;aspect-ratio:16/9;min-height:260px;max-height:420px;
-            background:linear-gradient(180deg,#fff2 0%, #052f4e1c 100%);
-            border:1.5px solid var(--glass-border);border-radius:28px;
-            position:relative;backdrop-filter:blur(12px);overflow:hidden;box-shadow:0 2px 38px #00d4ff22;
+        .hero-visual {
+            position:relative;animation:fadeIn 1.3s cubic-bezier(.65,.43,.25,1);
         }
-        .dot{
-            position:absolute;width:12px;height:12px;border-radius:50%;box-shadow:0 0 18px var(--primary);background:var(--primary);animation:movePlayer 3.2s infinite linear;
+        .pitch-abstract {
+            width:100%;aspect-ratio:16/9;min-height:260px;max-height:410px;
+            background: linear-gradient(180deg,#fff2 0%,#0000 100%);
+            border:1px solid var(--glass-border);border-radius:22px;
+            position:relative;backdrop-filter: blur(7px);overflow:hidden;
+            box-shadow:0 2px 38px #00d4ff18;
         }
-        .dot:nth-child(2){background:var(--secondary);box-shadow:0 0 17px var(--secondary);animation-delay:1.2s;top:30%;left:22%;}
-        .dot:nth-child(3){animation-duration:5.3s;top:60%;left:79%;}
-        .dot:nth-child(1){top:45%;left:38%;}
-        @keyframes movePlayer{0%{transform:translate(0,0);opacity:0;}20%{opacity:1;}80%{opacity:1;}100%{transform:translate(80px,-40px);opacity:0;}}
+        .dot {
+            position:absolute;width:11px;height:11px;border-radius:50%;box-shadow:0 0 14px var(--primary);
+            background:var(--primary);animation:movePlayer 3.8s infinite linear;
+        }
+        .dot:nth-child(2) {background:var(--secondary);box-shadow:0 0 15px var(--secondary);animation-delay:1s;top:34%;left:19%;}
+        .dot:nth-child(3) {animation-duration:5.8s;top:68%;left:78%;}
+        .dot:nth-child(1) {top:44%;left:36%;}
+        @keyframes movePlayer {0%{transform: translate(0,0);opacity:0;}18%{opacity:1;}82%{opacity:1;}100%{transform:translate(97px,-44px);opacity:0;}}
         /* Features Section */
-        .features-section{padding:5.2rem 4% 3.5rem;max-width:1240px;margin:0 auto;}
-        .section-header{text-align:center;margin-bottom:3.4rem;}
-        .section-title{font-size:2.7rem;font-weight:900;margin-bottom:1rem;}
-        .features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:2.6rem;}
-        .feature-card{
-            background:var(--glass);border:2px solid var(--glass-border);padding:2.3rem;border-radius:22px;transition:.28s;
-            position:relative;overflow:hidden;text-align:left;box-shadow:0 6px 26px #00d4ff0A;
-            clip-path: var(--card-vertices);
+        .features-section {padding:5.3rem 4% 3rem;max-width:1280px;margin:0 auto;}
+        .section-header {text-align:center;margin-bottom:3.3rem;}
+        .section-title {font-size:2.55rem;font-weight:800;margin-bottom:1.1rem;}
+        .features-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2.2rem;}
+        .feature-card {
+            background:var(--glass);border:1px solid var(--glass-border);
+            padding:2.2rem;border-radius:20px;transition:.27s;position:relative;overflow:hidden;text-align:left;
+            box-shadow:0 6px 26px #00d4ff06;
         }
-        .feature-card::before{
-            content:'';position:absolute;top:0;left:0;width:100%;height:6px;background: linear-gradient(90deg,var(--primary),var(--accent),var(--secondary));opacity:0;transition:.21s;
+        .feature-card::before {
+            content:'';position:absolute;top:0;left:0;width:100%;height:3px;
+            background: linear-gradient(90deg,var(--primary),var(--secondary));opacity:0;transition:.21s;
         }
-        .feature-card:hover{transform: translateY(-6px) scale(1.04);background:rgba(255,255,255,0.11);}
-        .feature-card:hover::before{opacity:.8;}
-        .icon-box{
-            width:64px;height:64px;background:rgba(0,212,255,0.14);border-radius:18px;display:flex;align-items:center;justify-content:center;
-            font-size:1.58rem;color:var(--primary);margin-bottom:1.1rem;box-shadow:0 2px 12px #00d4ff29;
+        .feature-card:hover {transform: translateY(-5px);background:rgba(255,255,255,0.06);}
+        .feature-card:hover::before {opacity:1;}
+        .icon-box {
+            width:58px;height:58px;background:rgba(0,212,255,0.13);border-radius:14px;display:flex;align-items:center;justify-content:center;
+            font-size:1.38rem;color:var(--primary);margin-bottom:1.1rem;
         }
-        .card-title{font-size:1.32rem;font-weight:800;margin-bottom:0.4rem;color:#fff;}
-        .card-desc{color:var(--text-muted);line-height:1.67;font-size:1.08rem;}
-
-        /* Steps Section */
-        .steps-section{background:var(--bg-darker);padding:4.8rem 4%;border-top:1px solid var(--glass-border);}
-        .steps-container{max-width:1250px;margin:0 auto;display:flex;justify-content:space-between;gap:2.5rem;flex-wrap:wrap;}
-        .step-item{flex:1;min-width:220px;text-align:center;position:relative;}
-        .step-number{
-            font-size:3.6rem;font-weight:900;color:rgba(255,255,255,0.10);position:absolute;top:-18px;left:50%;transform:translateX(-50%);z-index:0;
+        .card-title {font-size:1.22rem;font-weight:700;margin-bottom:0.7rem;color:#fff;}
+        .card-desc {color:var(--text-muted);line-height:1.56;font-size:1rem;}
+        /* Steps */
+        .steps-section {background:var(--bg-darker);padding:4.6rem 4%;border-top:1px solid var(--glass-border);}
+        .steps-container {max-width:1250px;margin:0 auto;display:flex;justify-content:space-between;gap:2.2rem;flex-wrap:wrap;}
+        .step-item {flex:1;min-width:240px;text-align:center;position:relative;}
+        .step-number {
+            font-size:3.3rem;font-weight:900;color:rgba(255,255,255,0.07);
+            position:absolute;top:-16px;left:50%;transform:translateX(-50%);z-index:0;
         }
-        .step-content{position:relative;z-index:1;padding-top:1.4rem;}
-        .step-icon{margin-bottom:1.2rem;color:var(--secondary);font-size:2.29rem;}
-        /* Tech Specs Strip */
-        .tech-strip{padding:2.2rem 4%;text-align:center;background:rgba(0,212,255,0.12);font-family:monospace;font-size:1.09rem;letter-spacing:1px;color:var(--primary);border-bottom:1px solid var(--glass-border);}
-        /* Footer */
-        footer{padding:2.4rem 4% 1.2rem;border-top:1px solid var(--glass-border);background:var(--bg-darker);}
-        .footer-content{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:3.3rem;margin-bottom:2rem;}
-        .footer-brand h3{font-size:1.25rem;margin-bottom:1.1rem;color:#fff;}
-        .footer-brand p{color:var(--text-muted);max-width:320px;}
-        .footer-links{display:flex;gap:2.5rem;justify-content:flex-end;}
-        .link-group h4{color:#fff;margin-bottom:1.2rem;}
-        .link-group a{display:block;color:var(--text-muted);text-decoration:none;margin-bottom:0.7rem;transition:.16s;}
-        .link-group a:hover{color:var(--primary);}
-        .copyright{text-align:center;color:rgba(255,255,255,0.17);font-size:0.93rem;padding-top:1.3rem;}
-        /* Animation */
-        @keyframes slideUp{from{opacity:0;transform:translateY(32px);}to{opacity:1;transform:translateY(0);}}
-        @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-
+        .step-content {position:relative;z-index:1;padding-top:1.2rem;}
+        .step-icon {margin-bottom:1.2rem;color:var(--secondary);font-size:2.2rem;}
+        .tech-strip {padding:2rem 4%;text-align:center;background:rgba(0,212,255,0.09);font-family:monospace;font-size:1.08rem;letter-spacing:1px;color:var(--primary);border-bottom:1px solid var(--glass-border);}
+        footer {padding:2.8rem 4% 1rem;border-top:1px solid var(--glass-border);background:var(--bg-darker);}
+        .footer-content {max-width:1250px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:3.3rem;margin-bottom:2.2rem;}
+        .footer-brand h3 {font-size:1.25rem;margin-bottom:1rem;color:#fff;}
+        .footer-brand p {color:var(--text-muted);max-width:320px;}
+        .footer-links {display:flex;gap:2.5rem;justify-content:flex-end;}
+        .link-group h4 {color:#fff;margin-bottom:1.3rem;}
+        .link-group a {display:block;color:var(--text-muted);text-decoration:none;margin-bottom:0.6rem;transition:.18s;}
+        .link-group a:hover {color:var(--primary);}
+        .copyright {text-align:center;color:rgba(255,255,255,0.17);font-size:0.86rem;padding-top:1.2rem;}
+        /* Animations */
+        @keyframes slideUp {from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+        @keyframes fadeIn {from{opacity:0;}to{opacity:1;}}
         /* Responsive */
         @media (max-width:1200px){
-            .hero{grid-template-columns:1fr;gap:2.2rem;}
-            .hero-visual{margin-top:2.8rem;}
+            .hero{grid-template-columns:1fr;}
+            .hero-visual{margin-top:2rem;}
             .footer-content{grid-template-columns:1fr;}
         }
         @media (max-width:900px){
-            .navbar{padding:0.8rem 2%;}
-            .features-section{padding:3rem 2%;}
-            .steps-section{padding:2.2rem 2%;}
-            .footer-content{gap:1.2rem;}
+            .navbar{padding:1rem 2%;}
+            .features-section{padding:3.5rem 2% 2rem;}
+            .steps-section{padding:3rem 2%;}
+            .footer-content{gap:1.7rem;}
             .hero-buttons{flex-direction:column;gap:0.7rem;}
-            .hero-title{font-size:2.8rem;}
         }
         @media (max-width:600px){
-            .navbar{padding:0.5rem 5%;flex-direction:row;}
+            .navbar{padding:0.6rem 5%;flex-direction:row;}
             .nav-links{display:none;}
-            .nav-mobile-toggle{display:block;}
+            .mobile-toggle{display:block;}
             .hero-title{font-size:2.1rem;}
-            .hero{padding-top:5.8rem;}
+            .hero{padding-top:6rem;}
             .hero-content{text-align:center;}
-            .section-title{font-size:1.5rem;}
-            .steps-container{flex-direction:column;gap:1.1rem;}
-            .feature-card{padding:1.3rem;}
+            .hero-buttons{justify-content:center;}
+            .section-title{font-size:1.4rem;}
+            .steps-container{flex-direction:column;gap:1.4rem;}
+            .feature-card{padding: 1.3rem;}
         }
-
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const toggleBtn = document.querySelector('.nav-mobile-toggle');
+            const toggleBtn = document.querySelector('.mobile-toggle');
             const navLinks = document.querySelector('.nav-links');
             toggleBtn && toggleBtn.addEventListener('click',()=>{
                 navLinks.style.display = (navLinks.style.display === 'flex' ? 'none' : 'flex');
             });
             window.addEventListener('resize',()=>{
-                if(window.innerWidth>700){navLinks.style.display='flex';}else{navLinks.style.display='none';}
+                if(window.innerWidth>600){navLinks.style.display='flex';}else{navLinks.style.display='none';}
             });
         });
     </script>
 </head>
 <body>
-    <div class="bg-art"></div>
+    <div class="bg-grid"></div>
     <nav class="navbar">
         <a href="index.html" class="logo-link">
-            <svg width="32" height="32" viewBox="0 0 100 100">
+            <svg width="30" height="30" viewBox="0 0 100 100">
                 <defs>
                     <linearGradient id="navLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:1"/>
@@ -219,9 +231,8 @@
             <a href="#" class="nav-link">Technology</a>
         </div>
         <a href="processor.html" class="btn-nav">Launch App</a>
-        <span class="nav-mobile-toggle"><i class="fas fa-bars"></i></span>
+        <span class="mobile-toggle"><i class="fas fa-bars"></i></span>
     </nav>
-
     <header class="hero">
         <div class="hero-content">
             <div class="badge">
@@ -232,7 +243,7 @@
                 <span class="gradient-text">Hidden Data</span>
             </h1>
             <p class="hero-subtitle">
-                Transform standard match footage into tactical 2D insights.<br>Detect players, referees, and ball movement instantly using browser-based Computer Vision.
+                Transform standard match footage into tactical 2D insights. Detect players, referees, and ball movement instantly using browser-based Computer Vision.
             </p>
             <div class="hero-buttons">
                 <a href="processor.html" class="btn-hero">
@@ -245,48 +256,45 @@
         </div>
         <div class="hero-visual">
             <div class="pitch-abstract">
-                <div style="position: absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:96px;height:96px;border:2px solid rgba(255,255,255,0.22);border-radius:50%;"></div>
-                <div style="position:absolute;top:0;left:50%;height:100%;width:1.5px;background:rgba(255,255,255,0.23);"></div>
+                <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%,-50%);width:100px;height:100px;border:2px solid rgba(255,255,255,0.2);border-radius:50%;"></div>
+                <div style="position: absolute;top:0;left:50%;height:100%;width:1px;background:rgba(255,255,255,0.2);"></div>
                 <div class="dot"></div>
                 <div class="dot"></div>
                 <div class="dot"></div>
             </div>
         </div>
     </header>
-
     <div class="tech-strip">
         <span><i class="fas fa-shield-alt"></i> PRIVACY FIRST: ALL PROCESSING HAPPENS LOCALLY IN YOUR BROWSER</span>
     </div>
-
     <section id="features" class="features-section">
         <div class="section-header">
             <h2 class="section-title">Intelligent Analysis</h2>
-            <p style="color:var(--text-muted);">Advanced features powered by the COCO-SSD model and modern browser AI</p>
+            <p style="color:var(--text-muted);">Advanced features powered by the COCO-SSD model</p>
         </div>
         <div class="features-grid">
             <div class="feature-card">
                 <div class="icon-box"><i class="fas fa-search-location"></i></div>
                 <h3 class="card-title">Object Detection</h3>
-                <p class="card-desc">Identifies and classifies players, referees, and the ball with high precision using state-of-the-art neural networks enhanced specifically for football analytics.</p>
+                <p class="card-desc">Identifies and classifies players, referees, and the ball with high precision using state-of-the-art neural networks.</p>
             </div>
             <div class="feature-card">
                 <div class="icon-box"><i class="fas fa-map"></i></div>
                 <h3 class="card-title">2D Mapping</h3>
-                <p class="card-desc">Transforms video perspective into a top-down tactical view, correcting for camera angles, player scale, and perspective distortion.</p>
+                <p class="card-desc">Converts video perspective into a top-down tactical view, correcting for camera angles and perspective distortion.</p>
             </div>
             <div class="feature-card">
                 <div class="icon-box"><i class="fas fa-chart-line"></i></div>
                 <h3 class="card-title">Live Statistics</h3>
-                <p class="card-desc">Generate real-time simulation data: player movement, possession zones, team formations, and instant confidence intervals using advanced browser ML.</p>
+                <p class="card-desc">Generate real-time data including player counts, confidence intervals, and processing framerates.</p>
             </div>
             <div class="feature-card">
                 <div class="icon-box"><i class="fas fa-bolt"></i></div>
-                <h3 class="card-title">Zero Latency Processing</h3>
-                <p class="card-desc">No uploads required: everything runs locally in Chrome, Edge sau Firefox cu WebGL, AI.js și model COCO-SSD adaptat Pitch2D.</p>
+                <h3 class="card-title">Zero Latency Upload</h3>
+                <p class="card-desc">No heavy server uploads required. The engine runs directly in your Chrome or Firefox browser using WebGL.</p>
             </div>
         </div>
     </section>
-
     <section id="how-it-works" class="steps-section">
         <div class="section-header"><h2 class="section-title">How It Works</h2></div>
         <div class="steps-container">
@@ -295,7 +303,7 @@
                 <div class="step-content">
                     <div class="step-icon"><i class="fas fa-file-video"></i></div>
                     <h3>Upload Video</h3>
-                    <p style="color:var(--text-muted);font-size:0.98rem;">Select any MP4, AVI or WebM football clip. Ultra-fast browser processing—no servers required.</p>
+                    <p style="color:var(--text-muted);font-size:0.96rem;">Select any MP4, AVI, or WebM football clip.</p>
                 </div>
             </div>
             <div class="step-item">
@@ -303,7 +311,7 @@
                 <div class="step-content">
                     <div class="step-icon"><i class="fas fa-cogs"></i></div>
                     <h3>AI Processing</h3>
-                    <p style="color:var(--text-muted);font-size:0.98rem;">View player and ball detection in real time while tactical mapping is built frame by frame.</p>
+                    <p style="color:var(--text-muted);font-size:0.96rem;">The model scans frames to identify entities.</p>
                 </div>
             </div>
             <div class="step-item">
@@ -311,25 +319,23 @@
                 <div class="step-content">
                     <div class="step-icon"><i class="fas fa-download"></i></div>
                     <h3>Export Data</h3>
-                    <p style="color:var(--text-muted);font-size:0.98rem;">View the live 2D simulation and instantly download analytics as CSV or JSON for integration anywhere.</p>
+                    <p style="color:var(--text-muted);font-size:0.96rem;">View the 2D simulation and download the result.</p>
                 </div>
             </div>
         </div>
     </section>
-
     <footer>
         <div class="footer-content">
             <div class="footer-brand">
                 <h3>Pitch2D</h3>
-                <p>Democratizing sports analytics with advanced, local browser-based AI tools.</p>
+                <p>Democratizing sports analytics with accessible, browser-based AI tools.</p>
             </div>
             <div class="footer-links">
                 <div class="link-group">
                     <h4>Product</h4>
                     <a href="processor.html">Start Analysis</a>
                     <a href="#">Documentation</a>
-                    <a href="#">REST API</a>
-                    <a href="#">Github</a>
+                    <a href="#">API</a>
                 </div>
                 <div class="link-group">
                     <h4>Legal</h4>
