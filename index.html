@@ -3,794 +3,601 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pitch2D | The Future of Football Analytics</title>
-    <meta name="description" content="Advanced AI-powered football video analysis running directly in your browser.">
+    <title>Pitch2D | Ultimate AI Football Analytics</title>
+    <meta name="description" content="Transform match footage into tactical 2D data using advanced Computer Vision.">
     
-    <!-- Fonts: Space Grotesk & Inter -->
+    <!-- Fonts: Space Grotesk (Titluri) & Inter (Text) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     
-    <!-- Font Awesome -->
+    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
-            --primary: #00f2ff;       /* Neon Cyan */
-            --primary-dim: rgba(0, 242, 255, 0.1);
-            --secondary: #00ff9d;     /* Neon Green */
-            --bg-dark: #050505;       /* Deep Black */
-            --bg-card: rgba(20, 20, 25, 0.6);
-            --glass-border: rgba(255, 255, 255, 0.08);
+            --primary: #00f2ff;       /* Cyan Electric */
+            --primary-glow: rgba(0, 242, 255, 0.6);
+            --secondary: #ff2a6d;     /* Red/Pink Neon for Opponents */
+            --secondary-glow: rgba(255, 42, 109, 0.6);
+            --ball-color: #ffffff;
+            --bg-deep: #020204;       /* Darkest Black */
+            --bg-panel: rgba(15, 15, 20, 0.7);
+            --grid-line: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
             --text-main: #ffffff;
-            --text-muted: #a0a0a0;
+            --text-muted: #8892b0;
+            
             --font-heading: 'Space Grotesk', sans-serif;
             --font-body: 'Inter', sans-serif;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            scroll-behavior: smooth;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
 
         body {
-            background-color: var(--bg-dark);
+            background-color: var(--bg-deep);
             color: var(--text-main);
             font-family: var(--font-body);
             overflow-x: hidden;
             line-height: 1.6;
         }
 
-        /* --- Canvas Background --- */
+        /* --- Canvas Background (Network Effect) --- */
         #bg-canvas {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1;
-            opacity: 0.4;
+            opacity: 0.3;
+            pointer-events: none;
         }
 
-        /* --- Navigation --- */
+        /* --- Navbar --- */
         .navbar {
             position: fixed;
-            top: 0;
-            width: 100%;
-            padding: 1.2rem 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            top: 0; width: 100%;
+            padding: 1.5rem 5%;
+            display: flex; justify-content: space-between; align-items: center;
             z-index: 1000;
-            backdrop-filter: blur(15px);
+            backdrop-filter: blur(20px);
+            background: rgba(2, 2, 4, 0.8);
             border-bottom: 1px solid var(--glass-border);
-            background: rgba(5, 5, 5, 0.7);
-            transition: all 0.3s ease;
         }
 
         .logo {
             font-family: var(--font-heading);
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             font-weight: 700;
             color: white;
             text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            letter-spacing: -0.5px;
+            display: flex; align-items: center; gap: 10px;
         }
+        .logo i { color: var(--primary); filter: drop-shadow(0 0 5px var(--primary)); }
+        .logo span { color: var(--primary); }
 
-        .logo span {
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2.5rem;
-        }
-
+        .nav-links { display: flex; gap: 2.5rem; }
         .nav-links a {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.95rem;
-            font-weight: 500;
-            transition: color 0.3s;
-            position: relative;
+            color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500;
+            transition: 0.3s; position: relative;
         }
+        .nav-links a:hover { color: var(--primary); text-shadow: 0 0 10px var(--primary-glow); }
 
-        .nav-links a:hover {
-            color: white;
-        }
-
-        .nav-links a::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: -5px;
-            left: 0;
-            background: var(--primary);
-            transition: width 0.3s;
-        }
-
-        .nav-links a:hover::after {
-            width: 100%;
-        }
-
-        .btn-glow {
-            padding: 0.8rem 2rem;
-            background: rgba(255,255,255,0.05);
+        .btn-launch {
+            padding: 0.7rem 1.8rem;
+            background: rgba(0, 242, 255, 0.1);
             border: 1px solid var(--primary);
             color: var(--primary);
-            border-radius: 50px;
+            border-radius: 4px;
+            font-family: var(--font-heading);
             font-weight: 600;
             text-decoration: none;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-            font-family: var(--font-heading);
-            letter-spacing: 0.5px;
         }
-
-        .btn-glow:hover {
+        .btn-launch:hover {
             background: var(--primary);
             color: #000;
-            box-shadow: 0 0 30px var(--primary-dim);
-            transform: translateY(-2px);
+            box-shadow: 0 0 20px var(--primary-glow);
         }
 
         /* --- Hero Section --- */
         .hero {
             min-height: 100vh;
-            display: flex;
-            align-items: center;
             padding: 0 5%;
+            display: flex; align-items: center;
             position: relative;
-            overflow: hidden;
+            padding-top: 80px;
         }
 
         .hero-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1.2fr; /* Mai mult loc pentru vizual */
             gap: 4rem;
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             align-items: center;
             width: 100%;
-            padding-top: 80px; /* navbar offset */
         }
 
-        .hero-content h1 {
-            font-family: var(--font-heading);
-            font-size: 4.5rem;
-            line-height: 1.1;
-            font-weight: 700;
+        /* Typography */
+        .hero-content { z-index: 2; }
+        
+        .badge-ai {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 600;
             margin-bottom: 1.5rem;
+            letter-spacing: 1px;
+        }
+        .pulse-dot {
+            width: 6px; height: 6px; background: var(--primary); border-radius: 50%;
+            box-shadow: 0 0 8px var(--primary);
+            animation: pulseDot 2s infinite;
         }
 
-        .hero-content h1 .gradient-text {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        h1 {
+            font-family: var(--font-heading);
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+        .gradient-text {
+            background: linear-gradient(120deg, #fff 30%, var(--primary) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .hero-content p {
-            font-size: 1.2rem;
+        p.hero-desc {
+            font-size: 1.1rem;
             color: var(--text-muted);
             margin-bottom: 2.5rem;
-            max-width: 550px;
+            max-width: 500px;
+            border-left: 2px solid var(--primary);
+            padding-left: 1.5rem;
         }
 
-        .cta-group {
-            display: flex;
-            gap: 1.5rem;
-        }
-
+        .cta-group { display: flex; gap: 1rem; }
+        
         .btn-primary {
             padding: 1rem 2.5rem;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            border: none;
-            border-radius: 50px;
+            background: var(--primary);
             color: #000;
             font-weight: 700;
-            font-size: 1.1rem;
-            cursor: pointer;
             text-decoration: none;
-            transition: transform 0.3s, box-shadow 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 40px rgba(0, 242, 255, 0.3);
-        }
-
-        /* --- Hero Visual (The Scanner) --- */
-        .hero-visual {
-            position: relative;
-            height: 500px;
-            background: radial-gradient(circle at center, rgba(0, 242, 255, 0.05) 0%, transparent 70%);
-            border-radius: 20px;
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(5px);
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            perspective: 1000px;
-        }
-
-        .pitch-3d {
-            width: 80%;
-            height: 60%;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            transform: rotateX(45deg);
-            position: relative;
-            background: 
-                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px),
-                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
-            background-size: 40px 40px;
-            box-shadow: 0 0 50px rgba(0, 242, 255, 0.1);
-        }
-
-        .scan-line {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: var(--primary);
-            box-shadow: 0 0 20px var(--primary);
-            animation: scan 3s infinite linear;
-            opacity: 0.8;
-        }
-
-        .player-dot {
-            position: absolute;
-            width: 12px;
-            height: 12px;
-            background: var(--secondary);
-            border-radius: 50%;
-            box-shadow: 0 0 15px var(--secondary);
-            transform: translate(-50%, -50%);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes scan {
-            0% { top: 0%; opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { top: 100%; opacity: 0; }
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(0, 255, 157, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 255, 157, 0); }
-        }
-
-        /* --- Features Section --- */
-        .features {
-            padding: 8rem 5%;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 5rem;
-        }
-
-        .section-header h2 {
+            border-radius: 4px;
             font-family: var(--font-heading);
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .section-header span {
-            color: var(--primary);
             text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 0.9rem;
-            font-weight: 700;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px var(--primary-glow);
         }
 
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-
-        .feature-card {
-            background: var(--bg-card);
-            border: 1px solid var(--glass-border);
-            padding: 3rem 2rem;
-            border-radius: 24px;
-            transition: all 0.4s ease;
+        /* --- THE 2D TACTICAL BOARD (VISUAL) --- */
+        .visual-container {
             position: relative;
-            overflow: hidden;
-        }
-
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
+            height: 550px;
             width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at top right, rgba(0, 242, 255, 0.1), transparent 40%);
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-10px);
-            border-color: var(--primary-dim);
-        }
-
-        .feature-card:hover::before {
-            opacity: 1;
-        }
-
-        .feature-icon {
-            font-size: 2.5rem;
-            color: var(--primary);
-            margin-bottom: 1.5rem;
-            background: rgba(0, 242, 255, 0.1);
-            width: 70px;
-            height: 70px;
+            perspective: 1200px; /* Creates the 3D depth */
             display: flex;
-            align-items: center;
             justify-content: center;
-            border-radius: 18px;
+            align-items: center;
         }
 
-        .feature-card h3 {
-            font-family: var(--font-heading);
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: white;
-        }
-
-        .feature-card p {
-            color: var(--text-muted);
-            font-size: 1rem;
-        }
-
-        /* --- Steps / How it works --- */
-        .steps-section {
-            background: linear-gradient(180deg, var(--bg-dark) 0%, #0a0a0f 100%);
-            padding: 6rem 5%;
-            border-top: 1px solid var(--glass-border);
-        }
-
-        .steps-wrapper {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 2rem;
-        }
-
-        .step {
-            flex: 1;
-            min-width: 250px;
-            text-align: center;
+        /* The Board Frame */
+        .tactical-board {
+            width: 90%;
+            height: 80%;
+            background: rgba(10, 12, 16, 0.8);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            transform: rotateX(30deg) rotateZ(0deg); /* THE TILT */
             position: relative;
-            padding: 2rem;
-        }
-
-        .step-num {
-            font-size: 5rem;
-            font-weight: 900;
-            color: rgba(255, 255, 255, 0.03);
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            font-family: var(--font-heading);
-            z-index: 0;
-        }
-
-        .step-content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .step h4 {
-            font-size: 1.4rem;
-            margin: 1rem 0;
-            color: var(--secondary);
-        }
-
-        /* --- Tech Banner --- */
-        .tech-strip {
-            background: rgba(0, 242, 255, 0.05);
-            border-y: 1px solid var(--glass-border);
-            padding: 1.5rem 0;
+            box-shadow: 
+                0 20px 50px rgba(0,0,0,0.5),
+                0 0 100px rgba(0, 242, 255, 0.05),
+                inset 0 0 50px rgba(0,0,0,0.8);
             overflow: hidden;
+            backdrop-filter: blur(10px);
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+        }
+        
+        .tactical-board:hover {
+            transform: rotateX(25deg) translateY(-10px);
+        }
+
+        /* Grid & Surface */
+        .pitch-surface {
+            width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 40px 40px;
+            position: relative;
+        }
+
+        /* Pitch Markings (Glowing Lines) */
+        .pitch-line {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 10px rgba(255,255,255,0.05);
+        }
+        .line-center { width: 100%; height: 2px; top: 50%; left: 0; background: rgba(255,255,255,0.2); }
+        .circle-center { 
+            width: 100px; height: 100px; 
+            border: 2px solid rgba(255,255,255,0.2); 
+            border-radius: 50%; 
+            top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); 
+        }
+        .box-area {
+            width: 120px; height: 200px;
+            border: 2px solid rgba(255,255,255,0.2);
+            top: 50%; transform: translateY(-50%);
+        }
+        .box-left { left: 0; border-left: none; }
+        .box-right { right: 0; border-right: none; }
+
+        /* Dynamic AI Data Overlay (Text inside the board) */
+        .ai-overlay {
+            position: absolute;
+            bottom: 20px; left: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: var(--primary);
+            pointer-events: none;
+            text-shadow: 0 0 5px var(--primary);
+            z-index: 10;
+        }
+
+        /* --- ANIMATED ENTITIES --- */
+        .dot {
+            position: absolute;
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+        }
+
+        /* Team Home (Cyan) */
+        .player-home {
+            background: var(--bg-deep);
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        /* Team Away (Red) */
+        .player-away {
+            background: var(--bg-deep);
+            border: 2px solid var(--secondary);
+            box-shadow: 0 0 15px var(--secondary);
+        }
+
+        /* Ball */
+        .ball {
+            width: 8px; height: 8px;
+            background: #fff;
+            box-shadow: 0 0 20px #fff;
+            z-index: 6;
+            animation: ballMovement 8s infinite ease-in-out;
+        }
+
+        /* Tracking Cursor (The square tracking the ball) */
+        .tracker-box {
+            position: absolute;
+            width: 30px; height: 30px;
+            border: 1px dashed var(--primary);
+            transform: translate(-50%, -50%);
+            animation: ballMovement 8s infinite ease-in-out;
+            z-index: 4;
+        }
+        .tracker-label {
+            position: absolute;
+            top: -15px; left: 50%;
+            transform: translateX(-50%);
+            font-size: 8px; color: var(--primary);
             white-space: nowrap;
         }
 
-        .tech-scroll {
-            display: inline-block;
-            animation: scrollText 20s linear infinite;
+        /* Animations Keyframes (The Play) */
+        /* Scenario: Midfielder (Left) -> Winger (Top) -> Cross -> Striker (Right) -> Goal */
+        
+        @keyframes ballMovement {
+            0%   { top: 50%; left: 40%; } /* Start at Midfielder */
+            20%  { top: 20%; left: 60%; } /* Pass to Winger */
+            40%  { top: 20%; left: 75%; } /* Winger Dribble */
+            60%  { top: 50%; left: 85%; } /* Cross to Striker */
+            80%  { top: 50%; left: 95%; } /* Shot to Goal */
+            90%  { top: 50%; left: 98%; opacity: 1; } /* In Net */
+            95%  { top: 50%; left: 98%; opacity: 0; } /* Reset */
+            100% { top: 50%; left: 40%; opacity: 0; } /* Reset Position */
         }
 
-        .tech-item {
-            display: inline-block;
-            margin: 0 2rem;
-            font-family: monospace;
-            color: var(--primary);
-            font-size: 1.1rem;
+        /* Player Animations */
+        .p1 { animation: player1Move 8s infinite ease-in-out; top: 50%; left: 40%; } /* Midfielder */
+        .p2 { animation: player2Move 8s infinite ease-in-out; top: 30%; left: 50%; } /* Winger */
+        .p3 { animation: player3Move 8s infinite ease-in-out; top: 60%; left: 60%; } /* Striker */
+        
+        .a1 { animation: def1Move 8s infinite ease-in-out; top: 30%; left: 60%; } /* Defender */
+        .a2 { animation: gkMove 8s infinite ease-in-out; top: 50%; left: 92%; } /* Goalkeeper */
+
+        @keyframes player1Move {
+            0% { top: 50%; left: 40%; }
+            20% { top: 55%; left: 45%; } /* Moves after pass */
+            100% { top: 55%; left: 45%; }
         }
 
-        @keyframes scrollText {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
+        @keyframes player2Move { /* Winger Run */
+            0% { top: 30%; left: 50%; }
+            20% { top: 20%; left: 60%; } /* Receives ball */
+            40% { top: 20%; left: 75%; } /* Dribbles */
+            100% { top: 20%; left: 75%; }
+        }
+
+        @keyframes player3Move { /* Striker Run */
+            0% { top: 60%; left: 60%; }
+            40% { top: 60%; left: 70%; }
+            60% { top: 50%; left: 85%; } /* Runs into box to shoot */
+            100% { top: 50%; left: 85%; }
+        }
+
+        @keyframes def1Move { /* Defender Chase */
+            0% { top: 30%; left: 65%; }
+            25% { top: 25%; left: 62%; }
+            40% { top: 25%; left: 72%; }
+            100% { top: 25%; left: 72%; }
+        }
+
+        @keyframes gkMove { /* Goalkeeper Dive */
+            0% { top: 50%; left: 92%; }
+            75% { top: 50%; left: 92%; }
+            85% { top: 52%; left: 94%; } /* Dive */
+            100% { top: 50%; left: 92%; }
+        }
+
+        /* --- Features Section --- */
+        .features-section {
+            padding: 8rem 5%;
+            background: linear-gradient(180deg, var(--bg-deep) 0%, #08080c 100%);
+            border-top: 1px solid var(--glass-border);
+        }
+        .section-title { text-align: center; margin-bottom: 4rem; }
+        .section-title h2 { font-family: var(--font-heading); font-size: 2.5rem; }
+
+        .card-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;
+            max-width: 1400px; margin: 0 auto;
+        }
+        .tech-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--glass-border);
+            padding: 2rem; border-radius: 12px;
+            transition: 0.3s;
+        }
+        .tech-card:hover {
+            background: rgba(255,255,255,0.04);
+            border-color: var(--primary);
+            transform: translateY(-5px);
+        }
+        .icon-box {
+            font-size: 1.8rem; color: var(--primary); margin-bottom: 1rem;
         }
 
         /* --- Footer --- */
         footer {
             padding: 4rem 5%;
-            background: #020202;
+            background: #000;
             border-top: 1px solid var(--glass-border);
-            text-align: center;
+            text-align: center; color: var(--text-muted); font-size: 0.9rem;
         }
 
-        .footer-logo {
-            font-family: var(--font-heading);
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            display: inline-block;
-        }
-        
-        .footer-logo span { color: var(--primary); }
-
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin: 2rem 0;
-        }
-
-        .footer-links a {
-            color: var(--text-muted);
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        .footer-links a:hover { color: var(--primary); }
-
-        .copyright {
-            color: #444;
-            font-size: 0.9rem;
-        }
-
-        /* --- Scroll Reveal Animation Class --- */
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease;
-        }
-
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* Mobile Responsiveness */
-        @media (max-width: 768px) {
-            .hero-grid {
-                grid-template-columns: 1fr;
-                text-align: center;
-            }
-            
-            .hero-content h1 {
-                font-size: 3rem;
-            }
-
-            .cta-group {
-                justify-content: center;
-            }
-
-            .nav-links {
-                display: none;
-            }
-            
-            .hero-visual {
-                height: 350px;
-            }
+        /* Responsive */
+        @media (max-width: 992px) {
+            .hero-grid { grid-template-columns: 1fr; text-align: center; gap: 2rem; }
+            .hero-content { display: flex; flex-direction: column; align-items: center; }
+            .visual-container { height: 400px; }
+            .hero h1 { font-size: 3rem; }
+            .nav-links { display: none; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Canvas for Background Particles -->
     <canvas id="bg-canvas"></canvas>
 
     <!-- Navbar -->
     <nav class="navbar">
         <a href="#" class="logo">
-            <i class="fas fa-circle-nodes" style="color: var(--secondary);"></i>
+            <i class="fas fa-circle-nodes"></i>
             Pitch<span>2D</span>
         </a>
         <div class="nav-links">
             <a href="#features">Features</a>
-            <a href="#how-it-works">Technology</a>
-            <a href="#security">Privacy</a>
+            <a href="#technology">Technology</a>
+            <a href="#privacy">Privacy</a>
         </div>
-        <a href="processor.html" class="btn-glow">Launch App</a>
+        <a href="processor.html" class="btn-launch">Launch App</a>
     </nav>
 
-    <!-- Hero Section -->
+    <!-- Hero -->
     <header class="hero">
         <div class="hero-grid">
-            <div class="hero-content reveal">
-                <div style="color: var(--secondary); font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
-                    <span style="width: 8px; height: 8px; background: var(--secondary); border-radius: 50%; box-shadow: 0 0 10px var(--secondary);"></span>
-                    AI POWERED ANALYSIS
+            <!-- Text Content -->
+            <div class="hero-content">
+                <div class="badge-ai">
+                    <div class="pulse-dot"></div>
+                    LIVE COMPUTER VISION
                 </div>
                 <h1>
-                    Unlock the <br>
-                    <span class="gradient-text">Hidden Matrix</span> <br>
-                    of the Game.
+                    See the Game <br>
+                    <span class="gradient-text">From Above.</span>
                 </h1>
-                <p>
-                    Transform standard football footage into professional 2D tactical data instantly. No cloud servers. No latency. Powered by Computer Vision directly in your browser.
+                <p class="hero-desc">
+                    Upload any match footage and get instant, tactical 2D visualizations. 
+                    Powered by TensorFlow.js, running 100% locally in your browser.
                 </p>
                 <div class="cta-group">
                     <a href="processor.html" class="btn-primary">
-                        Start Analysis <i class="fas fa-bolt"></i>
+                        Start Analysis <i class="fas fa-arrow-right"></i>
                     </a>
-                    <a href="#features" class="btn-glow" style="background: transparent; border-color: rgba(255,255,255,0.3); color: white;">
-                        Learn More
+                    <a href="#demo" class="btn-launch" style="background: transparent; color: #fff; border-color: rgba(255,255,255,0.3);">
+                        Watch Demo
                     </a>
                 </div>
             </div>
 
-            <div class="hero-visual reveal" style="transition-delay: 0.2s;">
-                <!-- CSS 3D Pitch Simulation -->
-                <div class="pitch-3d">
-                    <div class="scan-line"></div>
-                    <!-- Simulated Players -->
-                    <div class="player-dot" style="top: 30%; left: 40%;"></div>
-                    <div class="player-dot" style="top: 50%; left: 50%; animation-delay: 0.5s;"></div>
-                    <div class="player-dot" style="top: 60%; left: 20%; animation-delay: 1s;"></div>
-                    <div class="player-dot" style="top: 25%; left: 75%; background: #ff4757; box-shadow: 0 0 15px #ff4757; animation-delay: 0.2s;"></div>
-                    <div class="player-dot" style="top: 70%; left: 65%; background: #ff4757; box-shadow: 0 0 15px #ff4757; animation-delay: 0.8s;"></div>
-                </div>
-                <!-- Overlay UI Data -->
-                <div style="position: absolute; bottom: 20px; left: 20px; font-family: monospace; color: var(--primary); font-size: 0.8rem;">
-                    > PROCESSING FRAMES...<br>
-                    > OBJ_DETECT: 98% CONFIDENCE<br>
-                    > MAPPING: 2D PLANE
+            <!-- Visual: The 2D Board Simulation -->
+            <div class="visual-container">
+                <div class="tactical-board">
+                    <div class="pitch-surface">
+                        <!-- Pitch Markings -->
+                        <div class="pitch-line line-center"></div>
+                        <div class="pitch-line circle-center"></div>
+                        <div class="pitch-line box-area box-left"></div>
+                        <div class="pitch-line box-area box-right"></div>
+
+                        <!-- AI Overlay Data -->
+                        <div class="ai-overlay">
+                            > TRACKING: ACTIVE<br>
+                            > OBJECTS: 22<br>
+                            > BALL_SPEED: 18.4 m/s<br>
+                            <span style="color: var(--secondary);">> PREDICTION: GOAL PROB 89%</span>
+                        </div>
+
+                        <!-- Players (Home - Cyan) -->
+                        <div class="dot player-home p1"></div> <!-- Midfielder -->
+                        <div class="dot player-home p2"></div> <!-- Winger -->
+                        <div class="dot player-home p3"></div> <!-- Striker -->
+
+                        <!-- Players (Away - Red) -->
+                        <div class="dot player-away a1"></div> <!-- Defender -->
+                        <div class="dot player-away a2"></div> <!-- Goalkeeper -->
+
+                        <!-- The Ball -->
+                        <div class="dot ball"></div>
+                        
+                        <!-- AI Tracker Box on Ball -->
+                        <div class="tracker-box">
+                            <span class="tracker-label">BALL_ID_01</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- Tech Strip -->
-    <div class="tech-strip">
-        <div class="tech-scroll">
-            <span class="tech-item"><i class="fab fa-js"></i> TENSORFLOW.JS</span>
-            <span class="tech-item"><i class="fas fa-shield-alt"></i> LOCAL PROCESSING</span>
-            <span class="tech-item"><i class="fas fa-video"></i> REAL-TIME CV</span>
-            <span class="tech-item"><i class="fas fa-project-diagram"></i> COCO-SSD MODEL</span>
-            <span class="tech-item"><i class="fas fa-bolt"></i> WEBGL ACCELERATION</span>
-            <!-- Duplicate for smooth loop -->
-            <span class="tech-item"><i class="fab fa-js"></i> TENSORFLOW.JS</span>
-            <span class="tech-item"><i class="fas fa-shield-alt"></i> LOCAL PROCESSING</span>
-            <span class="tech-item"><i class="fas fa-video"></i> REAL-TIME CV</span>
-        </div>
-    </div>
-
     <!-- Features -->
-    <section id="features" class="features">
-        <div class="section-header reveal">
-            <span>Capabilities</span>
-            <h2>Intelligent Engine</h2>
-            <p style="color: var(--text-muted);">State-of-the-art technology simplified for everyone.</p>
+    <section id="features" class="features-section">
+        <div class="section-title">
+            <h2>Professional Grade Analytics</h2>
         </div>
-
-        <div class="feature-grid">
-            <div class="feature-card reveal">
-                <div class="feature-icon"><i class="fas fa-users-viewfinder"></i></div>
-                <h3>Object Detection</h3>
-                <p>Identifies players, referees, and the ball with pixel-perfect precision using neural networks trained on thousands of match hours.</p>
+        <div class="card-grid">
+            <div class="tech-card">
+                <div class="icon-box"><i class="fas fa-video"></i></div>
+                <h3>Object Tracking</h3>
+                <p style="color: var(--text-muted)">Detects players and ball with frame-by-frame precision using COCO-SSD customized models.</p>
             </div>
-
-            <div class="feature-card reveal" style="transition-delay: 0.1s;">
-                <div class="feature-icon"><i class="fas fa-map-location-dot"></i></div>
-                <h3>Perspective Homography</h3>
-                <p>Mathematically flattens broadcast footage into a clean, top-down 2D tactical board for precise positioning analysis.</p>
+            <div class="tech-card">
+                <div class="icon-box"><i class="fas fa-project-diagram"></i></div>
+                <h3>Homography Mapping</h3>
+                <p style="color: var(--text-muted)">Converts broadcast TV angles into accurate top-down 2D coordinates automatically.</p>
             </div>
-
-            <div class="feature-card reveal" style="transition-delay: 0.2s;">
-                <div class="feature-icon"><i class="fas fa-stopwatch-20"></i></div>
-                <h3>Real-Time Inference</h3>
-                <p>Leverages WebGL backend to process video frames instantly. No waiting for uploads, no server queues.</p>
+            <div class="tech-card">
+                <div class="icon-box"><i class="fas fa-bolt"></i></div>
+                <h3>Zero Latency</h3>
+                <p style="color: var(--text-muted)">Processing happens in your browser via WebGL. No servers, no uploads, total privacy.</p>
             </div>
         </div>
     </section>
 
-    <!-- How It Works -->
-    <section id="how-it-works" class="steps-section">
-        <div class="section-header reveal">
-            <span>Workflow</span>
-            <h2>From Video to Data</h2>
-        </div>
-        <div class="steps-wrapper">
-            <div class="step reveal">
-                <div class="step-num">01</div>
-                <div class="step-content">
-                    <i class="fas fa-file-video" style="font-size: 2rem; color: white; margin-bottom: 1rem;"></i>
-                    <h4>Upload</h4>
-                    <p style="color: var(--text-muted);">Drag & drop your match footage. Supports MP4 and WebM formats.</p>
-                </div>
-            </div>
-            <div class="step reveal" style="transition-delay: 0.2s;">
-                <div class="step-num">02</div>
-                <div class="step-content">
-                    <i class="fas fa-microchip" style="font-size: 2rem; color: white; margin-bottom: 1rem;"></i>
-                    <h4>Process</h4>
-                    <p style="color: var(--text-muted);">The AI scans every frame, detecting entities and calculating coordinates.</p>
-                </div>
-            </div>
-            <div class="step reveal" style="transition-delay: 0.4s;">
-                <div class="step-num">03</div>
-                <div class="step-content">
-                    <i class="fas fa-chart-area" style="font-size: 2rem; color: white; margin-bottom: 1rem;"></i>
-                    <h4>Analyze</h4>
-                    <p style="color: var(--text-muted);">Visualize the 2D tactical view and export the tracking data.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
     <footer>
-        <div class="footer-logo">Pitch<span>2D</span></div>
-        <div class="footer-links">
-            <a href="#">About</a>
-            <a href="processor.html">Launch App</a>
-            <a href="#">Documentation</a>
-            <a href="#">Terms</a>
+        <div style="margin-bottom: 1rem; font-size: 1.5rem; font-weight: 700; color: white;">
+            Pitch<span style="color: var(--primary)">2D</span>
         </div>
-        <div class="copyright">
-            &copy; 2025 Pitch2D Analytics. All processing happens locally in browser.
-        </div>
+        <p>&copy; 2025 Pitch2D Analytics. The Future of Football.</p>
     </footer>
 
-    <!-- Scripts -->
+    <!-- Background Script -->
     <script>
-        // --- 1. Canvas Particle Background Logic ---
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
+        
+        let width, height, particles;
 
-        let particlesArray;
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            initParticles();
+        }
 
-        // Set canvas size
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        // Handle resize
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            init();
-        });
-
-        // Particle Class
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.directionX = (Math.random() * 0.4) - 0.2;
-                this.directionY = (Math.random() * 0.4) - 0.2;
-                this.size = Math.random() * 2;
-                this.color = '#00f2ff';
-            }
-
-            // Method to draw individual particle
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-            }
-
-            // Check particle position, check mouse position, move the particle, draw the particle
-            update() {
-                if (this.x > canvas.width || this.x < 0) {
-                    this.directionX = -this.directionX;
-                }
-                if (this.y > canvas.height || this.y < 0) {
-                    this.directionY = -this.directionY;
-                }
-                this.x += this.directionX;
-                this.y += this.directionY;
-                this.draw();
+        function initParticles() {
+            particles = [];
+            const count = Math.floor(width * height / 20000);
+            for(let i=0; i<count; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: (Math.random() - 0.5) * 0.5,
+                    size: Math.random() * 2
+                });
             }
         }
 
-        // Create particle array
-        function init() {
-            particlesArray = [];
-            let numberOfParticles = (canvas.height * canvas.width) / 15000; // Density
-            for (let i = 0; i < numberOfParticles; i++) {
-                particlesArray.push(new Particle());
-            }
-        }
-
-        // Animation Loop
         function animate() {
-            requestAnimationFrame(animate);
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = 'rgba(0, 242, 255, 0.5)'; // Cyan particles
+            
+            particles.forEach((p, i) => {
+                p.x += p.vx;
+                p.y += p.vy;
 
-            for (let i = 0; i < particlesArray.length; i++) {
-                particlesArray[i].update();
-            }
-            connect();
-        }
+                if(p.x < 0 || p.x > width) p.vx *= -1;
+                if(p.y < 0 || p.y > height) p.vy *= -1;
 
-        // Draw lines between close particles
-        function connect() {
-            let opacityValue = 1;
-            for (let a = 0; a < particlesArray.length; a++) {
-                for (let b = a; b < particlesArray.length; b++) {
-                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
-                        + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
-                    
-                    if (distance < (canvas.width/7) * (canvas.height/7)) {
-                        opacityValue = 1 - (distance / 20000);
-                        ctx.strokeStyle = 'rgba(0, 242, 255,' + opacityValue * 0.15 + ')'; // Neon cyan lines
-                        ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Connections
+                for(let j=i+1; j<particles.length; j++) {
+                    const p2 = particles[j];
+                    const dx = p.x - p2.x;
+                    const dy = p.y - p2.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+
+                    if(dist < 100) {
+                        ctx.strokeStyle = `rgba(0, 242, 255, ${0.1 * (1 - dist/100)})`;
+                        ctx.lineWidth = 0.5;
                         ctx.beginPath();
-                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
-                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
                         ctx.stroke();
                     }
                 }
-            }
+            });
+            requestAnimationFrame(animate);
         }
 
-        // Start animation
-        init();
+        window.addEventListener('resize', resize);
+        resize();
         animate();
-
-
-        // --- 2. Scroll Reveal Animation ---
-        window.addEventListener('scroll', reveal);
-
-        function reveal() {
-            var reveals = document.querySelectorAll('.reveal');
-
-            for (var i = 0; i < reveals.length; i++) {
-                var windowheight = window.innerHeight;
-                var revealtop = reveals[i].getBoundingClientRect().top;
-                var revealpoint = 150;
-
-                if (revealtop < windowheight - revealpoint) {
-                    reveals[i].classList.add('active');
-                } else {
-                    // Optional: remove class to re-animate when scrolling up
-                    // reveals[i].classList.remove('active'); 
-                }
-            }
-        }
-        
-        // Trigger once on load
-        reveal();
-
     </script>
 </body>
 </html>
