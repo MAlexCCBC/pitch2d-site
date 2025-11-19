@@ -3,286 +3,316 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pitch2D | AI Football Analytics Platform</title>
-    <meta name="description" content="Transform match footage into tactical 2D data using advanced Computer Vision and AI.">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <!-- Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Pitch2D | The Future of Football Analytics</title>
+    <meta name="description" content="Advanced AI-powered football video analysis running directly in your browser.">
     
+    <!-- Fonts: Space Grotesk & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         :root {
-            --primary: #00d4ff;
-            --secondary: #00ff88;
-            --bg-dark: #0a1828;
-            --bg-darker: #050c14;
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary: #00f2ff;       /* Neon Cyan */
+            --primary-dim: rgba(0, 242, 255, 0.1);
+            --secondary: #00ff9d;     /* Neon Green */
+            --bg-dark: #050505;       /* Deep Black */
+            --bg-card: rgba(20, 20, 25, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
-            --text-muted: #94a3b8;
+            --text-muted: #a0a0a0;
+            --font-heading: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', sans-serif;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            scroll-behavior: smooth;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
             background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(0, 212, 255, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(0, 255, 136, 0.1) 0px, transparent 50%),
-                linear-gradient(135deg, #0a1828 0%, #1a2332 100%);
             color: var(--text-main);
-            min-height: 100vh;
+            font-family: var(--font-body);
             overflow-x: hidden;
+            line-height: 1.6;
         }
 
-        /* Background Grid Effect */
-        .grid-bg {
+        /* --- Canvas Background --- */
+        #bg-canvas {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            pointer-events: none;
             z-index: -1;
+            opacity: 0.4;
         }
 
-        /* Navigation */
+        /* --- Navigation --- */
         .navbar {
             position: fixed;
             top: 0;
             width: 100%;
-            background: rgba(10, 24, 40, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 1rem 5%;
+            padding: 1.2rem 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 1000;
+            backdrop-filter: blur(15px);
             border-bottom: 1px solid var(--glass-border);
+            background: rgba(5, 5, 5, 0.7);
+            transition: all 0.3s ease;
         }
 
-        .logo-container {
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 0.8rem;
-            text-decoration: none;
+            gap: 10px;
         }
 
-        .logo-text {
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
+        .logo span {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
         }
 
         .nav-links {
             display: flex;
-            gap: 2rem;
+            gap: 2.5rem;
         }
 
-        .nav-link {
+        .nav-links a {
             color: var(--text-muted);
             text-decoration: none;
             font-size: 0.95rem;
             font-weight: 500;
-            transition: color 0.3s ease;
+            transition: color 0.3s;
+            position: relative;
         }
 
-        .nav-link:hover {
-            color: var(--text-main);
+        .nav-links a:hover {
+            color: white;
         }
 
-        .btn-nav {
-            padding: 0.6rem 1.5rem;
-            background: rgba(0, 212, 255, 0.1);
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background: var(--primary);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .btn-glow {
+            padding: 0.8rem 2rem;
+            background: rgba(255,255,255,0.05);
             border: 1px solid var(--primary);
             color: var(--primary);
             border-radius: 50px;
-            font-size: 0.9rem;
             font-weight: 600;
             text-decoration: none;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-family: var(--font-heading);
+            letter-spacing: 0.5px;
         }
 
-        .btn-nav:hover {
+        .btn-glow:hover {
             background: var(--primary);
-            color: var(--bg-dark);
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+            color: #000;
+            box-shadow: 0 0 30px var(--primary-dim);
+            transform: translateY(-2px);
         }
 
-        /* Hero Section */
+        /* --- Hero Section --- */
         .hero {
-            padding: 8rem 5% 4rem;
-            max-width: 1400px;
-            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 0 5%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 4rem;
+            max-width: 1400px;
+            margin: 0 auto;
             align-items: center;
-            min-height: 90vh;
+            width: 100%;
+            padding-top: 80px; /* navbar offset */
         }
 
-        .hero-content {
-            animation: slideUp 0.8s ease-out;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(0, 255, 136, 0.1);
-            border: 1px solid rgba(0, 255, 136, 0.3);
-            border-radius: 20px;
-            color: var(--secondary);
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-        }
-
-        .hero-title {
-            font-size: 4rem;
+        .hero-content h1 {
+            font-family: var(--font-heading);
+            font-size: 4.5rem;
             line-height: 1.1;
-            font-weight: 800;
+            font-weight: 700;
             margin-bottom: 1.5rem;
-            letter-spacing: -1px;
         }
 
-        .gradient-text {
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
+        .hero-content h1 .gradient-text {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .hero-subtitle {
+        .hero-content p {
             font-size: 1.2rem;
             color: var(--text-muted);
-            line-height: 1.6;
             margin-bottom: 2.5rem;
-            max-width: 500px;
+            max-width: 550px;
         }
 
-        .hero-buttons {
+        .cta-group {
             display: flex;
-            gap: 1rem;
+            gap: 1.5rem;
         }
 
         .btn-primary {
             padding: 1rem 2.5rem;
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            color: var(--bg-dark);
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border: none;
             border-radius: 50px;
+            color: #000;
             font-weight: 700;
-            text-decoration: none;
             font-size: 1.1rem;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            display: inline-flex;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 10px;
         }
 
         .btn-primary:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 242, 255, 0.3);
         }
 
-        .btn-secondary {
-            padding: 1rem 2.5rem;
-            background: transparent;
-            border: 1px solid var(--glass-border);
-            color: var(--text-main);
-            border-radius: 50px;
-            font-weight: 600;
-            text-decoration: none;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-        }
-
-        .btn-secondary:hover {
-            background: var(--glass);
-            border-color: var(--text-main);
-        }
-
-        /* Hero Visual (Abstract) */
+        /* --- Hero Visual (The Scanner) --- */
         .hero-visual {
             position: relative;
-            animation: fadeIn 1.5s ease-out;
-        }
-
-        .pitch-abstract {
-            width: 100%;
-            aspect-ratio: 16/9;
-            background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
-            border: 1px solid var(--glass-border);
+            height: 500px;
+            background: radial-gradient(circle at center, rgba(0, 242, 255, 0.05) 0%, transparent 70%);
             border-radius: 20px;
-            position: relative;
+            border: 1px solid var(--glass-border);
             backdrop-filter: blur(5px);
             overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
         }
 
-        /* Animated Dots */
-        .dot {
+        .pitch-3d {
+            width: 80%;
+            height: 60%;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            transform: rotateX(45deg);
+            position: relative;
+            background: 
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            box-shadow: 0 0 50px rgba(0, 242, 255, 0.1);
+        }
+
+        .scan-line {
             position: absolute;
-            width: 8px;
-            height: 8px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
             background: var(--primary);
+            box-shadow: 0 0 20px var(--primary);
+            animation: scan 3s infinite linear;
+            opacity: 0.8;
+        }
+
+        .player-dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--secondary);
             border-radius: 50%;
-            box-shadow: 0 0 10px var(--primary);
-            animation: movePlayer 4s infinite linear;
-        }
-        
-        .dot:nth-child(2) { background: var(--secondary); box-shadow: 0 0 10px var(--secondary); animation-delay: 1s; top: 30%; left: 20%; }
-        .dot:nth-child(3) { animation-duration: 6s; top: 60%; left: 80%; }
-
-        @keyframes movePlayer {
-            0% { transform: translate(0, 0); opacity: 0; }
-            20% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { transform: translate(100px, -50px); opacity: 0; }
+            box-shadow: 0 0 15px var(--secondary);
+            transform: translate(-50%, -50%);
+            animation: pulse 2s infinite;
         }
 
-        /* Features Section */
-        .features-section {
-            padding: 6rem 5%;
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 255, 157, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 157, 0); }
+        }
+
+        /* --- Features Section --- */
+        .features {
+            padding: 8rem 5%;
             max-width: 1400px;
             margin: 0 auto;
         }
 
         .section-header {
             text-align: center;
-            margin-bottom: 4rem;
+            margin-bottom: 5rem;
         }
 
-        .section-title {
-            font-size: 2.5rem;
-            font-weight: 700;
+        .section-header h2 {
+            font-family: var(--font-heading);
+            font-size: 3rem;
             margin-bottom: 1rem;
         }
 
-        .features-grid {
+        .section-header span {
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .feature-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
         }
 
         .feature-card {
-            background: var(--glass);
+            background: var(--bg-card);
             border: 1px solid var(--glass-border);
-            padding: 2.5rem;
-            border-radius: 20px;
-            transition: all 0.3s ease;
+            padding: 3rem 2rem;
+            border-radius: 24px;
+            transition: all 0.4s ease;
             position: relative;
             overflow: hidden;
         }
@@ -293,355 +323,334 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            height: 100%;
+            background: radial-gradient(circle at top right, rgba(0, 242, 255, 0.1), transparent 40%);
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.4s;
         }
 
         .feature-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-10px);
+            border-color: var(--primary-dim);
         }
 
         .feature-card:hover::before {
             opacity: 1;
         }
 
-        .icon-box {
-            width: 60px;
-            height: 60px;
-            background: rgba(0, 212, 255, 0.1);
-            border-radius: 15px;
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            background: rgba(0, 242, 255, 0.1);
+            width: 70px;
+            height: 70px;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 18px;
+        }
+
+        .feature-card h3 {
+            font-family: var(--font-heading);
             font-size: 1.5rem;
-            color: var(--primary);
-            margin-bottom: 1.5rem;
-        }
-
-        .card-title {
-            font-size: 1.3rem;
-            font-weight: 600;
             margin-bottom: 1rem;
-            color: #fff;
+            color: white;
         }
 
-        .card-desc {
+        .feature-card p {
             color: var(--text-muted);
-            line-height: 1.6;
-            font-size: 0.95rem;
+            font-size: 1rem;
         }
 
-        /* How It Works */
+        /* --- Steps / How it works --- */
         .steps-section {
-            background: var(--bg-darker);
+            background: linear-gradient(180deg, var(--bg-dark) 0%, #0a0a0f 100%);
             padding: 6rem 5%;
             border-top: 1px solid var(--glass-border);
-            border-bottom: 1px solid var(--glass-border);
         }
 
-        .steps-container {
-            max-width: 1400px;
+        .steps-wrapper {
+            max-width: 1200px;
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
-            gap: 2rem;
             flex-wrap: wrap;
+            gap: 2rem;
         }
 
-        .step-item {
+        .step {
             flex: 1;
             min-width: 250px;
             text-align: center;
             position: relative;
+            padding: 2rem;
         }
 
-        .step-number {
-            font-size: 4rem;
+        .step-num {
+            font-size: 5rem;
             font-weight: 900;
-            color: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.03);
             position: absolute;
-            top: -20px;
+            top: 0;
             left: 50%;
             transform: translateX(-50%);
+            font-family: var(--font-heading);
             z-index: 0;
         }
 
         .step-content {
             position: relative;
             z-index: 1;
-            padding-top: 1rem;
         }
 
-        .step-icon {
-            margin-bottom: 1rem;
+        .step h4 {
+            font-size: 1.4rem;
+            margin: 1rem 0;
             color: var(--secondary);
-            font-size: 2rem;
         }
 
-        /* Tech Spec Strip */
+        /* --- Tech Banner --- */
         .tech-strip {
-            padding: 2rem 5%;
-            text-align: center;
-            background: rgba(0, 212, 255, 0.05);
-            border-bottom: 1px solid var(--glass-border);
+            background: rgba(0, 242, 255, 0.05);
+            border-y: 1px solid var(--glass-border);
+            padding: 1.5rem 0;
+            overflow: hidden;
+            white-space: nowrap;
         }
 
-        .tech-text {
-            color: var(--primary);
+        .tech-scroll {
+            display: inline-block;
+            animation: scrollText 20s linear infinite;
+        }
+
+        .tech-item {
+            display: inline-block;
+            margin: 0 2rem;
             font-family: monospace;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
+            color: var(--primary);
+            font-size: 1.1rem;
         }
 
-        /* Footer */
+        @keyframes scrollText {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* --- Footer --- */
         footer {
-            padding: 4rem 5% 2rem;
+            padding: 4rem 5%;
+            background: #020202;
             border-top: 1px solid var(--glass-border);
-            background: var(--bg-darker);
+            text-align: center;
         }
 
-        .footer-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            margin-bottom: 3rem;
-        }
-
-        .footer-brand h3 {
-            font-size: 1.5rem;
+        .footer-logo {
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            font-weight: 700;
             margin-bottom: 1rem;
-            color: #fff;
+            display: inline-block;
         }
-
-        .footer-brand p {
-            color: var(--text-muted);
-            max-width: 300px;
-        }
+        
+        .footer-logo span { color: var(--primary); }
 
         .footer-links {
             display: flex;
-            gap: 3rem;
-            justify-content: flex-end;
+            justify-content: center;
+            gap: 2rem;
+            margin: 2rem 0;
         }
 
-        .link-group h4 {
-            color: #fff;
-            margin-bottom: 1.5rem;
-        }
-
-        .link-group a {
-            display: block;
+        .footer-links a {
             color: var(--text-muted);
             text-decoration: none;
-            margin-bottom: 0.8rem;
             transition: color 0.3s;
         }
 
-        .link-group a:hover {
-            color: var(--primary);
-        }
+        .footer-links a:hover { color: var(--primary); }
 
         .copyright {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.2);
-            font-size: 0.8rem;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: #444;
+            font-size: 0.9rem;
         }
 
-        /* Animations */
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* --- Scroll Reveal Animation Class --- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        /* Media Queries */
-        @media (max-width: 1024px) {
-            .hero {
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .hero-grid {
                 grid-template-columns: 1fr;
                 text-align: center;
-                padding-top: 6rem;
-                gap: 2rem;
             }
-
-            .hero-subtitle {
-                margin: 0 auto 2.5rem;
-            }
-
-            .hero-buttons {
-                justify-content: center;
-            }
-
-            .hero-title {
+            
+            .hero-content h1 {
                 font-size: 3rem;
             }
-        }
 
-        @media (max-width: 768px) {
-            .navbar {
-                padding: 1rem;
-            }
-            .nav-links {
-                display: none; /* Hidden on mobile for simplicity */
-            }
-            .footer-content {
-                grid-template-columns: 1fr;
-                text-align: center;
-            }
-            .footer-links {
+            .cta-group {
                 justify-content: center;
             }
-            .hero-title {
-                font-size: 2.5rem;
+
+            .nav-links {
+                display: none;
+            }
+            
+            .hero-visual {
+                height: 350px;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- Background Grid -->
-    <div class="grid-bg"></div>
+    <!-- Canvas for Background Particles -->
+    <canvas id="bg-canvas"></canvas>
 
     <!-- Navbar -->
     <nav class="navbar">
-        <a href="index.html" class="logo-container">
-            <svg width="30" height="30" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="navLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#00ff88;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-                <circle cx="50" cy="50" r="45" fill="none" stroke="url(#navLogoGrad)" stroke-width="4"/>
-                <line x1="50" y1="5" x2="50" y2="95" stroke="url(#navLogoGrad)" stroke-width="4"/>
-                <rect x="30" y="30" width="40" height="40" fill="none" stroke="url(#navLogoGrad)" stroke-width="3"/>
-            </svg>
-            <span class="logo-text">Pitch2D</span>
+        <a href="#" class="logo">
+            <i class="fas fa-circle-nodes" style="color: var(--secondary);"></i>
+            Pitch<span>2D</span>
         </a>
         <div class="nav-links">
-            <a href="#features" class="nav-link">Features</a>
-            <a href="#how-it-works" class="nav-link">How it works</a>
-            <a href="#" class="nav-link">Technology</a>
+            <a href="#features">Features</a>
+            <a href="#how-it-works">Technology</a>
+            <a href="#security">Privacy</a>
         </div>
-        <a href="processor.html" class="btn-nav">Launch App</a>
+        <a href="processor.html" class="btn-glow">Launch App</a>
     </nav>
 
     <!-- Hero Section -->
     <header class="hero">
-        <div class="hero-content">
-            <div class="badge">
-                <i class="fas fa-robot"></i> Powered by TensorFlow.js
+        <div class="hero-grid">
+            <div class="hero-content reveal">
+                <div style="color: var(--secondary); font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 8px; height: 8px; background: var(--secondary); border-radius: 50%; box-shadow: 0 0 10px var(--secondary);"></span>
+                    AI POWERED ANALYSIS
+                </div>
+                <h1>
+                    Unlock the <br>
+                    <span class="gradient-text">Hidden Matrix</span> <br>
+                    of the Game.
+                </h1>
+                <p>
+                    Transform standard football footage into professional 2D tactical data instantly. No cloud servers. No latency. Powered by Computer Vision directly in your browser.
+                </p>
+                <div class="cta-group">
+                    <a href="processor.html" class="btn-primary">
+                        Start Analysis <i class="fas fa-bolt"></i>
+                    </a>
+                    <a href="#features" class="btn-glow" style="background: transparent; border-color: rgba(255,255,255,0.3); color: white;">
+                        Learn More
+                    </a>
+                </div>
             </div>
-            <h1 class="hero-title">
-                Unlock the Game's <br>
-                <span class="gradient-text">Hidden Data</span>
-            </h1>
-            <p class="hero-subtitle">
-                Transform standard match footage into tactical 2D insights. Detect players, referees, and ball movement instantly using browser-based Computer Vision.
-            </p>
-            <div class="hero-buttons">
-                <a href="processor.html" class="btn-primary">
-                    Start Analysis <i class="fas fa-arrow-right"></i>
-                </a>
-                <a href="#how-it-works" class="btn-secondary">
-                    Learn More
-                </a>
-            </div>
-        </div>
-        
-        <div class="hero-visual">
-            <div class="pitch-abstract">
-                <!-- CSS generated visual elements -->
-                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; border: 2px solid rgba(255,255,255,0.2); border-radius: 50%;"></div>
-                <div style="position: absolute; top: 0; left: 50%; height: 100%; width: 1px; background: rgba(255,255,255,0.2);"></div>
-                
-                <!-- Animated Dots representing players -->
-                <div class="dot" style="top: 40%; left: 40%;"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
+
+            <div class="hero-visual reveal" style="transition-delay: 0.2s;">
+                <!-- CSS 3D Pitch Simulation -->
+                <div class="pitch-3d">
+                    <div class="scan-line"></div>
+                    <!-- Simulated Players -->
+                    <div class="player-dot" style="top: 30%; left: 40%;"></div>
+                    <div class="player-dot" style="top: 50%; left: 50%; animation-delay: 0.5s;"></div>
+                    <div class="player-dot" style="top: 60%; left: 20%; animation-delay: 1s;"></div>
+                    <div class="player-dot" style="top: 25%; left: 75%; background: #ff4757; box-shadow: 0 0 15px #ff4757; animation-delay: 0.2s;"></div>
+                    <div class="player-dot" style="top: 70%; left: 65%; background: #ff4757; box-shadow: 0 0 15px #ff4757; animation-delay: 0.8s;"></div>
+                </div>
+                <!-- Overlay UI Data -->
+                <div style="position: absolute; bottom: 20px; left: 20px; font-family: monospace; color: var(--primary); font-size: 0.8rem;">
+                    > PROCESSING FRAMES...<br>
+                    > OBJ_DETECT: 98% CONFIDENCE<br>
+                    > MAPPING: 2D PLANE
+                </div>
             </div>
         </div>
     </header>
 
     <!-- Tech Strip -->
     <div class="tech-strip">
-        <span class="tech-text">
-            <i class="fas fa-shield-alt"></i> PRIVACY FIRST: ALL PROCESSING HAPPENS LOCALLY IN YOUR BROWSER
-        </span>
+        <div class="tech-scroll">
+            <span class="tech-item"><i class="fab fa-js"></i> TENSORFLOW.JS</span>
+            <span class="tech-item"><i class="fas fa-shield-alt"></i> LOCAL PROCESSING</span>
+            <span class="tech-item"><i class="fas fa-video"></i> REAL-TIME CV</span>
+            <span class="tech-item"><i class="fas fa-project-diagram"></i> COCO-SSD MODEL</span>
+            <span class="tech-item"><i class="fas fa-bolt"></i> WEBGL ACCELERATION</span>
+            <!-- Duplicate for smooth loop -->
+            <span class="tech-item"><i class="fab fa-js"></i> TENSORFLOW.JS</span>
+            <span class="tech-item"><i class="fas fa-shield-alt"></i> LOCAL PROCESSING</span>
+            <span class="tech-item"><i class="fas fa-video"></i> REAL-TIME CV</span>
+        </div>
     </div>
 
-    <!-- Features Section -->
-    <section id="features" class="features-section">
-        <div class="section-header">
-            <h2 class="section-title">Intelligent Analysis</h2>
-            <p style="color: var(--text-muted);">Advanced features powered by the COCO-SSD model</p>
+    <!-- Features -->
+    <section id="features" class="features">
+        <div class="section-header reveal">
+            <span>Capabilities</span>
+            <h2>Intelligent Engine</h2>
+            <p style="color: var(--text-muted);">State-of-the-art technology simplified for everyone.</p>
         </div>
-        
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="icon-box"><i class="fas fa-search-location"></i></div>
-                <h3 class="card-title">Object Detection</h3>
-                <p class="card-desc">Identifies and classifies players, referees, and the ball with high precision using state-of-the-art neural networks.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="icon-box"><i class="fas fa-map"></i></div>
-                <h3 class="card-title">2D Mapping</h3>
-                <p class="card-desc">Converts video perspective into a top-down 2D tactical view, correcting for camera angles and perspective distortion.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="icon-box"><i class="fas fa-chart-line"></i></div>
-                <h3 class="card-title">Live Statistics</h3>
-                <p class="card-desc">Generate real-time data including player counts, confidence intervals, and processing framerates.</p>
+
+        <div class="feature-grid">
+            <div class="feature-card reveal">
+                <div class="feature-icon"><i class="fas fa-users-viewfinder"></i></div>
+                <h3>Object Detection</h3>
+                <p>Identifies players, referees, and the ball with pixel-perfect precision using neural networks trained on thousands of match hours.</p>
             </div>
 
-            <div class="feature-card">
-                <div class="icon-box"><i class="fas fa-bolt"></i></div>
-                <h3 class="card-title">Zero Latency Upload</h3>
-                <p class="card-desc">No heavy server uploads required. The engine runs directly in your Chrome or Firefox browser using WebGL.</p>
+            <div class="feature-card reveal" style="transition-delay: 0.1s;">
+                <div class="feature-icon"><i class="fas fa-map-location-dot"></i></div>
+                <h3>Perspective Homography</h3>
+                <p>Mathematically flattens broadcast footage into a clean, top-down 2D tactical board for precise positioning analysis.</p>
+            </div>
+
+            <div class="feature-card reveal" style="transition-delay: 0.2s;">
+                <div class="feature-icon"><i class="fas fa-stopwatch-20"></i></div>
+                <h3>Real-Time Inference</h3>
+                <p>Leverages WebGL backend to process video frames instantly. No waiting for uploads, no server queues.</p>
             </div>
         </div>
     </section>
 
-    <!-- How it works -->
+    <!-- How It Works -->
     <section id="how-it-works" class="steps-section">
-        <div class="section-header">
-            <h2 class="section-title">How It Works</h2>
+        <div class="section-header reveal">
+            <span>Workflow</span>
+            <h2>From Video to Data</h2>
         </div>
-        <div class="steps-container">
-            <div class="step-item">
-                <div class="step-number">01</div>
+        <div class="steps-wrapper">
+            <div class="step reveal">
+                <div class="step-num">01</div>
                 <div class="step-content">
-                    <div class="step-icon"><i class="fas fa-file-video"></i></div>
-                    <h3>Upload Video</h3>
-                    <p style="color: var(--text-muted); font-size: 0.9rem;">Select any MP4, AVI, or WebM football clip.</p>
+                    <i class="fas fa-file-video" style="font-size: 2rem; color: white; margin-bottom: 1rem;"></i>
+                    <h4>Upload</h4>
+                    <p style="color: var(--text-muted);">Drag & drop your match footage. Supports MP4 and WebM formats.</p>
                 </div>
             </div>
-            <div class="step-item">
-                <div class="step-number">02</div>
+            <div class="step reveal" style="transition-delay: 0.2s;">
+                <div class="step-num">02</div>
                 <div class="step-content">
-                    <div class="step-icon"><i class="fas fa-cogs"></i></div>
-                    <h3>AI Processing</h3>
-                    <p style="color: var(--text-muted); font-size: 0.9rem;">The model scans frames to identify entities.</p>
+                    <i class="fas fa-microchip" style="font-size: 2rem; color: white; margin-bottom: 1rem;"></i>
+                    <h4>Process</h4>
+                    <p style="color: var(--text-muted);">The AI scans every frame, detecting entities and calculating coordinates.</p>
                 </div>
             </div>
-            <div class="step-item">
-                <div class="step-number">03</div>
+            <div class="step reveal" style="transition-delay: 0.4s;">
+                <div class="step-num">03</div>
                 <div class="step-content">
-                    <div class="step-icon"><i class="fas fa-download"></i></div>
-                    <h3>Export Data</h3>
-                    <p style="color: var(--text-muted); font-size: 0.9rem;">View the 2D simulation and download the result.</p>
+                    <i class="fas fa-chart-area" style="font-size: 2rem; color: white; margin-bottom: 1rem;"></i>
+                    <h4>Analyze</h4>
+                    <p style="color: var(--text-muted);">Visualize the 2D tactical view and export the tracking data.</p>
                 </div>
             </div>
         </div>
@@ -649,29 +658,139 @@
 
     <!-- Footer -->
     <footer>
-        <div class="footer-content">
-            <div class="footer-brand">
-                <h3>Pitch2D</h3>
-                <p>Democratizing sports analytics with accessible, browser-based AI tools.</p>
-            </div>
-            <div class="footer-links">
-                <div class="link-group">
-                    <h4>Product</h4>
-                    <a href="processor.html">Start Analysis</a>
-                    <a href="#">Documentation</a>
-                    <a href="#">API</a>
-                </div>
-                <div class="link-group">
-                    <h4>Legal</h4>
-                    <a href="#">Privacy Policy</a>
-                    <a href="#">Terms of Service</a>
-                </div>
-            </div>
+        <div class="footer-logo">Pitch<span>2D</span></div>
+        <div class="footer-links">
+            <a href="#">About</a>
+            <a href="processor.html">Launch App</a>
+            <a href="#">Documentation</a>
+            <a href="#">Terms</a>
         </div>
         <div class="copyright">
-            &copy; 2025 Pitch2D Analytics. All rights reserved.
+            &copy; 2025 Pitch2D Analytics. All processing happens locally in browser.
         </div>
     </footer>
 
+    <!-- Scripts -->
+    <script>
+        // --- 1. Canvas Particle Background Logic ---
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let particlesArray;
+
+        // Set canvas size
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            init();
+        });
+
+        // Particle Class
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.directionX = (Math.random() * 0.4) - 0.2;
+                this.directionY = (Math.random() * 0.4) - 0.2;
+                this.size = Math.random() * 2;
+                this.color = '#00f2ff';
+            }
+
+            // Method to draw individual particle
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+
+            // Check particle position, check mouse position, move the particle, draw the particle
+            update() {
+                if (this.x > canvas.width || this.x < 0) {
+                    this.directionX = -this.directionX;
+                }
+                if (this.y > canvas.height || this.y < 0) {
+                    this.directionY = -this.directionY;
+                }
+                this.x += this.directionX;
+                this.y += this.directionY;
+                this.draw();
+            }
+        }
+
+        // Create particle array
+        function init() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 15000; // Density
+            for (let i = 0; i < numberOfParticles; i++) {
+                particlesArray.push(new Particle());
+            }
+        }
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+            connect();
+        }
+
+        // Draw lines between close particles
+        function connect() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
+                        + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    
+                    if (distance < (canvas.width/7) * (canvas.height/7)) {
+                        opacityValue = 1 - (distance / 20000);
+                        ctx.strokeStyle = 'rgba(0, 242, 255,' + opacityValue * 0.15 + ')'; // Neon cyan lines
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        // Start animation
+        init();
+        animate();
+
+
+        // --- 2. Scroll Reveal Animation ---
+        window.addEventListener('scroll', reveal);
+
+        function reveal() {
+            var reveals = document.querySelectorAll('.reveal');
+
+            for (var i = 0; i < reveals.length; i++) {
+                var windowheight = window.innerHeight;
+                var revealtop = reveals[i].getBoundingClientRect().top;
+                var revealpoint = 150;
+
+                if (revealtop < windowheight - revealpoint) {
+                    reveals[i].classList.add('active');
+                } else {
+                    // Optional: remove class to re-animate when scrolling up
+                    // reveals[i].classList.remove('active'); 
+                }
+            }
+        }
+        
+        // Trigger once on load
+        reveal();
+
+    </script>
 </body>
 </html>
