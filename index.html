@@ -5,521 +5,218 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pitch2D | AI Football Analytics Platform</title>
     <meta name="description" content="Transform match footage into tactical 2D data using advanced Computer Vision and AI.">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
         :root {
             --primary: #00d4ff;
             --secondary: #00ff88;
             --bg-dark: #0a1828;
             --bg-darker: #050c14;
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-main: #ffffff;
-            --text-muted: #94a3b8;
+            --glass: rgba(255,255,255,0.04);
+            --glass-border: rgba(255,255,255,0.08);
+            --text-main: #fff;
+            --text-muted: #93a3b8;
+            --danger: #ff2469;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * {box-sizing: border-box;}
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(0, 212, 255, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(0, 255, 136, 0.1) 0px, transparent 50%),
-                linear-gradient(135deg, #0a1828 0%, #1a2332 100%);
+            background: var(--bg-dark);
             color: var(--text-main);
+            margin: 0;
             min-height: 100vh;
+            background-image: 
+                radial-gradient(at 0% 0%, #00d4ff22 0px, transparent 60%),
+                radial-gradient(at 100% 0%, #00ff8820 0px, transparent 60%),
+                linear-gradient(135deg, #0a1828 0%, #1a2332 100%);
             overflow-x: hidden;
         }
-
-        /* Background Grid Effect */
-        .grid-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+        .bg-grid {
+            position: fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;
             background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
             background-size: 50px 50px;
-            pointer-events: none;
-            z-index: -1;
         }
-
-        /* Navigation */
         .navbar {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            background: rgba(10, 24, 40, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 1rem 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 1000;
-            border-bottom: 1px solid var(--glass-border);
+            position: fixed;top:0;left:0;width:100%;
+            background: rgba(10,24,40,0.9);backdrop-filter: blur(16px);
+            display: flex;justify-content: space-between;align-items: center;
+            padding: 0.7rem 4%;z-index:1030;border-bottom:1px solid var(--glass-border);
         }
-
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            text-decoration: none;
-        }
-
+        .logo-link {display: flex;align-items: center;gap: 1rem;text-decoration: none;}
         .logo-text {
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
+            font-size: 1.7rem;font-weight: 900;
+            background: linear-gradient(45deg,var(--primary),var(--secondary));
+            -webkit-background-clip: text;-webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
         }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-
+        .nav-links {display: flex;gap:1.6rem;}
         .nav-link {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.95rem;
-            font-weight: 500;
-            transition: color 0.3s ease;
+            color: var(--text-muted);font-size:1.01rem;font-weight:600;
+            text-decoration:none;padding:0.4rem 0.7rem;border-radius:18px;transition:0.22s;
         }
-
-        .nav-link:hover {
-            color: var(--text-main);
-        }
-
+        .nav-link:hover {color:var(--primary);background:var(--glass);}
         .btn-nav {
-            padding: 0.6rem 1.5rem;
-            background: rgba(0, 212, 255, 0.1);
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            border-radius: 50px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
+            background: linear-gradient(45deg,var(--primary),var(--secondary));
+            color: var(--bg-dark);border-radius:50px;padding: 0.8rem 2.1rem;
+            font-weight:700;text-decoration:none;border:none;font-size:1rem;
+            box-shadow: 0 6px 32px #00d4ff33;transition:0.28s all;
         }
-
-        .btn-nav:hover {
-            background: var(--primary);
-            color: var(--bg-dark);
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+        .btn-nav:hover {background:var(--primary);color:#111;}
+        .mobile-toggle {
+            display:none;cursor:pointer;font-size:2.1rem;color:var(--primary);
         }
 
         /* Hero Section */
         .hero {
-            padding: 8rem 5% 4rem;
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            align-items: center;
-            min-height: 90vh;
+            padding: 7rem 4% 4.5rem 4%;max-width:1200px;margin:0 auto;
+            display: grid;grid-template-columns: 0.93fr 1.07fr;gap:3.5rem;align-items: center;
+            min-height: 75vh;
         }
-
-        .hero-content {
-            animation: slideUp 0.8s ease-out;
-        }
-
+        .hero-content {animation: slideUp 0.9s cubic-bezier(.5,.82,.32,1);}
         .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(0, 255, 136, 0.1);
-            border: 1px solid rgba(0, 255, 136, 0.3);
-            border-radius: 20px;
-            color: var(--secondary);
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
+            display: inline-flex;align-items:center;gap:0.6rem;
+            background:rgba(0,255,136,0.12);border:1px solid rgba(0,255,136,0.3);
+            border-radius: 20px;color: var(--secondary);font-size: 0.95rem;font-weight:700;
+            padding:0.6rem 1.15rem;margin-bottom:1.5rem;box-shadow:0 0 0.5rem #00ff8822;
         }
-
         .hero-title {
-            font-size: 4rem;
-            line-height: 1.1;
-            font-weight: 800;
-            margin-bottom: 1.5rem;
-            letter-spacing: -1px;
+            font-size:3.6rem;line-height:1.1;font-weight:900;margin-bottom:1.1rem;
         }
-
         .gradient-text {
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            background: linear-gradient(45deg,var(--primary),var(--secondary));
+            -webkit-background-clip: text;-webkit-text-fill-color: transparent;
         }
-
         .hero-subtitle {
-            font-size: 1.2rem;
-            color: var(--text-muted);
-            line-height: 1.6;
-            margin-bottom: 2.5rem;
-            max-width: 500px;
+            font-size:1.12rem;color:var(--text-muted);line-height:1.62;
+            margin-bottom:2.4rem;max-width:500px;
         }
-
-        .hero-buttons {
-            display: flex;
-            gap: 1rem;
+        .hero-buttons {display:flex;gap:1.1rem;margin-bottom:2.6rem;}
+        .btn-hero {
+            padding: 1rem 2.1rem;background: linear-gradient(45deg,var(--primary),var(--secondary));
+            color: var(--bg-dark);border-radius:50px;font-weight:700;text-decoration:none;
+            font-size:1.1rem;transition: transform 0.28s,box-shadow 0.28s;display: flex;align-items: center;gap: 0.5rem;
         }
-
-        .btn-primary {
-            padding: 1rem 2.5rem;
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            color: var(--bg-dark);
-            border-radius: 50px;
-            font-weight: 700;
-            text-decoration: none;
-            font-size: 1.1rem;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
-        }
-
+        .btn-hero:hover {transform: translateY(-2px);box-shadow:0 10px 30px #00d4ff2e;}
         .btn-secondary {
-            padding: 1rem 2.5rem;
-            background: transparent;
-            border: 1px solid var(--glass-border);
-            color: var(--text-main);
-            border-radius: 50px;
-            font-weight: 600;
-            text-decoration: none;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
+            padding: 1rem 2.1rem;background:transparent;border:1px solid var(--glass-border);
+            color: var(--text-main);border-radius:50px;font-weight:600;text-decoration:none;font-size:1.1rem;transition:0.22s;
         }
-
-        .btn-secondary:hover {
-            background: var(--glass);
-            border-color: var(--text-main);
-        }
-
-        /* Hero Visual (Abstract) */
+        .btn-secondary:hover {background:var(--glass);border-color:var(--primary);}
+        /* Hero Visuals */
         .hero-visual {
-            position: relative;
-            animation: fadeIn 1.5s ease-out;
+            position:relative;animation:fadeIn 1.3s cubic-bezier(.65,.43,.25,1);
         }
-
         .pitch-abstract {
-            width: 100%;
-            aspect-ratio: 16/9;
-            background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            position: relative;
-            backdrop-filter: blur(5px);
-            overflow: hidden;
+            width:100%;aspect-ratio:16/9;min-height:260px;max-height:410px;
+            background: linear-gradient(180deg,#fff2 0%,#0000 100%);
+            border:1px solid var(--glass-border);border-radius:22px;
+            position:relative;backdrop-filter: blur(7px);overflow:hidden;
+            box-shadow:0 2px 38px #00d4ff18;
         }
-
-        /* Animated Dots */
         .dot {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            background: var(--primary);
-            border-radius: 50%;
-            box-shadow: 0 0 10px var(--primary);
-            animation: movePlayer 4s infinite linear;
+            position:absolute;width:11px;height:11px;border-radius:50%;box-shadow:0 0 14px var(--primary);
+            background:var(--primary);animation:movePlayer 3.8s infinite linear;
         }
-        
-        .dot:nth-child(2) { background: var(--secondary); box-shadow: 0 0 10px var(--secondary); animation-delay: 1s; top: 30%; left: 20%; }
-        .dot:nth-child(3) { animation-duration: 6s; top: 60%; left: 80%; }
-
-        @keyframes movePlayer {
-            0% { transform: translate(0, 0); opacity: 0; }
-            20% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { transform: translate(100px, -50px); opacity: 0; }
-        }
-
+        .dot:nth-child(2) {background:var(--secondary);box-shadow:0 0 15px var(--secondary);animation-delay:1s;top:34%;left:19%;}
+        .dot:nth-child(3) {animation-duration:5.8s;top:68%;left:78%;}
+        .dot:nth-child(1) {top:44%;left:36%;}
+        @keyframes movePlayer {0%{transform: translate(0,0);opacity:0;}18%{opacity:1;}82%{opacity:1;}100%{transform:translate(97px,-44px);opacity:0;}}
         /* Features Section */
-        .features-section {
-            padding: 6rem 5%;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 4rem;
-        }
-
-        .section-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-
+        .features-section {padding:5.3rem 4% 3rem;max-width:1280px;margin:0 auto;}
+        .section-header {text-align:center;margin-bottom:3.3rem;}
+        .section-title {font-size:2.55rem;font-weight:800;margin-bottom:1.1rem;}
+        .features-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2.2rem;}
         .feature-card {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            padding: 2.5rem;
-            border-radius: 20px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+            background:var(--glass);border:1px solid var(--glass-border);
+            padding:2.2rem;border-radius:20px;transition:.27s;position:relative;overflow:hidden;text-align:left;
+            box-shadow:0 6px 26px #00d4ff06;
         }
-
         .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            content:'';position:absolute;top:0;left:0;width:100%;height:3px;
+            background: linear-gradient(90deg,var(--primary),var(--secondary));opacity:0;transition:.21s;
         }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .feature-card:hover::before {
-            opacity: 1;
-        }
-
+        .feature-card:hover {transform: translateY(-5px);background:rgba(255,255,255,0.06);}
+        .feature-card:hover::before {opacity:1;}
         .icon-box {
-            width: 60px;
-            height: 60px;
-            background: rgba(0, 212, 255, 0.1);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: var(--primary);
-            margin-bottom: 1.5rem;
+            width:58px;height:58px;background:rgba(0,212,255,0.13);border-radius:14px;display:flex;align-items:center;justify-content:center;
+            font-size:1.38rem;color:var(--primary);margin-bottom:1.1rem;
         }
-
-        .card-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: #fff;
-        }
-
-        .card-desc {
-            color: var(--text-muted);
-            line-height: 1.6;
-            font-size: 0.95rem;
-        }
-
-        /* How It Works */
-        .steps-section {
-            background: var(--bg-darker);
-            padding: 6rem 5%;
-            border-top: 1px solid var(--glass-border);
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .steps-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            gap: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .step-item {
-            flex: 1;
-            min-width: 250px;
-            text-align: center;
-            position: relative;
-        }
-
+        .card-title {font-size:1.22rem;font-weight:700;margin-bottom:0.7rem;color:#fff;}
+        .card-desc {color:var(--text-muted);line-height:1.56;font-size:1rem;}
+        /* Steps */
+        .steps-section {background:var(--bg-darker);padding:4.6rem 4%;border-top:1px solid var(--glass-border);}
+        .steps-container {max-width:1250px;margin:0 auto;display:flex;justify-content:space-between;gap:2.2rem;flex-wrap:wrap;}
+        .step-item {flex:1;min-width:240px;text-align:center;position:relative;}
         .step-number {
-            font-size: 4rem;
-            font-weight: 900;
-            color: rgba(255, 255, 255, 0.05);
-            position: absolute;
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 0;
+            font-size:3.3rem;font-weight:900;color:rgba(255,255,255,0.07);
+            position:absolute;top:-16px;left:50%;transform:translateX(-50%);z-index:0;
         }
-
-        .step-content {
-            position: relative;
-            z-index: 1;
-            padding-top: 1rem;
-        }
-
-        .step-icon {
-            margin-bottom: 1rem;
-            color: var(--secondary);
-            font-size: 2rem;
-        }
-
-        /* Tech Spec Strip */
-        .tech-strip {
-            padding: 2rem 5%;
-            text-align: center;
-            background: rgba(0, 212, 255, 0.05);
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .tech-text {
-            color: var(--primary);
-            font-family: monospace;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-        }
-
-        /* Footer */
-        footer {
-            padding: 4rem 5% 2rem;
-            border-top: 1px solid var(--glass-border);
-            background: var(--bg-darker);
-        }
-
-        .footer-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            margin-bottom: 3rem;
-        }
-
-        .footer-brand h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: #fff;
-        }
-
-        .footer-brand p {
-            color: var(--text-muted);
-            max-width: 300px;
-        }
-
-        .footer-links {
-            display: flex;
-            gap: 3rem;
-            justify-content: flex-end;
-        }
-
-        .link-group h4 {
-            color: #fff;
-            margin-bottom: 1.5rem;
-        }
-
-        .link-group a {
-            display: block;
-            color: var(--text-muted);
-            text-decoration: none;
-            margin-bottom: 0.8rem;
-            transition: color 0.3s;
-        }
-
-        .link-group a:hover {
-            color: var(--primary);
-        }
-
-        .copyright {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.2);
-            font-size: 0.8rem;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
+        .step-content {position:relative;z-index:1;padding-top:1.2rem;}
+        .step-icon {margin-bottom:1.2rem;color:var(--secondary);font-size:2.2rem;}
+        .tech-strip {padding:2rem 4%;text-align:center;background:rgba(0,212,255,0.09);font-family:monospace;font-size:1.08rem;letter-spacing:1px;color:var(--primary);border-bottom:1px solid var(--glass-border);}
+        footer {padding:2.8rem 4% 1rem;border-top:1px solid var(--glass-border);background:var(--bg-darker);}
+        .footer-content {max-width:1250px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:3.3rem;margin-bottom:2.2rem;}
+        .footer-brand h3 {font-size:1.25rem;margin-bottom:1rem;color:#fff;}
+        .footer-brand p {color:var(--text-muted);max-width:320px;}
+        .footer-links {display:flex;gap:2.5rem;justify-content:flex-end;}
+        .link-group h4 {color:#fff;margin-bottom:1.3rem;}
+        .link-group a {display:block;color:var(--text-muted);text-decoration:none;margin-bottom:0.6rem;transition:.18s;}
+        .link-group a:hover {color:var(--primary);}
+        .copyright {text-align:center;color:rgba(255,255,255,0.17);font-size:0.86rem;padding-top:1.2rem;}
         /* Animations */
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes slideUp {from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+        @keyframes fadeIn {from{opacity:0;}to{opacity:1;}}
+        /* Responsive */
+        @media (max-width:1200px){
+            .hero{grid-template-columns:1fr;}
+            .hero-visual{margin-top:2rem;}
+            .footer-content{grid-template-columns:1fr;}
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        @media (max-width:900px){
+            .navbar{padding:1rem 2%;}
+            .features-section{padding:3.5rem 2% 2rem;}
+            .steps-section{padding:3rem 2%;}
+            .footer-content{gap:1.7rem;}
+            .hero-buttons{flex-direction:column;gap:0.7rem;}
         }
-
-        /* Media Queries */
-        @media (max-width: 1024px) {
-            .hero {
-                grid-template-columns: 1fr;
-                text-align: center;
-                padding-top: 6rem;
-                gap: 2rem;
-            }
-
-            .hero-subtitle {
-                margin: 0 auto 2.5rem;
-            }
-
-            .hero-buttons {
-                justify-content: center;
-            }
-
-            .hero-title {
-                font-size: 3rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .navbar {
-                padding: 1rem;
-            }
-            .nav-links {
-                display: none; /* Hidden on mobile for simplicity */
-            }
-            .footer-content {
-                grid-template-columns: 1fr;
-                text-align: center;
-            }
-            .footer-links {
-                justify-content: center;
-            }
-            .hero-title {
-                font-size: 2.5rem;
-            }
+        @media (max-width:600px){
+            .navbar{padding:0.6rem 5%;flex-direction:row;}
+            .nav-links{display:none;}
+            .mobile-toggle{display:block;}
+            .hero-title{font-size:2.1rem;}
+            .hero{padding-top:6rem;}
+            .hero-content{text-align:center;}
+            .hero-buttons{justify-content:center;}
+            .section-title{font-size:1.4rem;}
+            .steps-container{flex-direction:column;gap:1.4rem;}
+            .feature-card{padding: 1.3rem;}
         }
     </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggleBtn = document.querySelector('.mobile-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            toggleBtn && toggleBtn.addEventListener('click',()=>{
+                navLinks.style.display = (navLinks.style.display === 'flex' ? 'none' : 'flex');
+            });
+            window.addEventListener('resize',()=>{
+                if(window.innerWidth>600){navLinks.style.display='flex';}else{navLinks.style.display='none';}
+            });
+        });
+    </script>
 </head>
 <body>
-
-    <!-- Background Grid -->
-    <div class="grid-bg"></div>
-
-    <!-- Navbar -->
+    <div class="bg-grid"></div>
     <nav class="navbar">
-        <a href="index.html" class="logo-container">
-            <svg width="30" height="30" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <a href="index.html" class="logo-link">
+            <svg width="30" height="30" viewBox="0 0 100 100">
                 <defs>
                     <linearGradient id="navLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#00ff88;stop-opacity:1" />
+                        <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:1"/>
+                        <stop offset="100%" style="stop-color:#00ff88;stop-opacity:1"/>
                     </linearGradient>
                 </defs>
                 <circle cx="50" cy="50" r="45" fill="none" stroke="url(#navLogoGrad)" stroke-width="4"/>
@@ -534,9 +231,8 @@
             <a href="#" class="nav-link">Technology</a>
         </div>
         <a href="processor.html" class="btn-nav">Launch App</a>
+        <span class="mobile-toggle"><i class="fas fa-bars"></i></span>
     </nav>
-
-    <!-- Hero Section -->
     <header class="hero">
         <div class="hero-content">
             <div class="badge">
@@ -550,7 +246,7 @@
                 Transform standard match footage into tactical 2D insights. Detect players, referees, and ball movement instantly using browser-based Computer Vision.
             </p>
             <div class="hero-buttons">
-                <a href="processor.html" class="btn-primary">
+                <a href="processor.html" class="btn-hero">
                     Start Analysis <i class="fas fa-arrow-right"></i>
                 </a>
                 <a href="#how-it-works" class="btn-secondary">
@@ -558,54 +254,40 @@
                 </a>
             </div>
         </div>
-        
         <div class="hero-visual">
             <div class="pitch-abstract">
-                <!-- CSS generated visual elements -->
-                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; border: 2px solid rgba(255,255,255,0.2); border-radius: 50%;"></div>
-                <div style="position: absolute; top: 0; left: 50%; height: 100%; width: 1px; background: rgba(255,255,255,0.2);"></div>
-                
-                <!-- Animated Dots representing players -->
-                <div class="dot" style="top: 40%; left: 40%;"></div>
+                <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%,-50%);width:100px;height:100px;border:2px solid rgba(255,255,255,0.2);border-radius:50%;"></div>
+                <div style="position: absolute;top:0;left:50%;height:100%;width:1px;background:rgba(255,255,255,0.2);"></div>
+                <div class="dot"></div>
                 <div class="dot"></div>
                 <div class="dot"></div>
             </div>
         </div>
     </header>
-
-    <!-- Tech Strip -->
     <div class="tech-strip">
-        <span class="tech-text">
-            <i class="fas fa-shield-alt"></i> PRIVACY FIRST: ALL PROCESSING HAPPENS LOCALLY IN YOUR BROWSER
-        </span>
+        <span><i class="fas fa-shield-alt"></i> PRIVACY FIRST: ALL PROCESSING HAPPENS LOCALLY IN YOUR BROWSER</span>
     </div>
-
-    <!-- Features Section -->
     <section id="features" class="features-section">
         <div class="section-header">
             <h2 class="section-title">Intelligent Analysis</h2>
-            <p style="color: var(--text-muted);">Advanced features powered by the COCO-SSD model</p>
+            <p style="color:var(--text-muted);">Advanced features powered by the COCO-SSD model</p>
         </div>
-        
         <div class="features-grid">
             <div class="feature-card">
                 <div class="icon-box"><i class="fas fa-search-location"></i></div>
                 <h3 class="card-title">Object Detection</h3>
                 <p class="card-desc">Identifies and classifies players, referees, and the ball with high precision using state-of-the-art neural networks.</p>
             </div>
-            
             <div class="feature-card">
                 <div class="icon-box"><i class="fas fa-map"></i></div>
                 <h3 class="card-title">2D Mapping</h3>
-                <p class="card-desc">Converts video perspective into a top-down 2D tactical view, correcting for camera angles and perspective distortion.</p>
+                <p class="card-desc">Converts video perspective into a top-down tactical view, correcting for camera angles and perspective distortion.</p>
             </div>
-            
             <div class="feature-card">
                 <div class="icon-box"><i class="fas fa-chart-line"></i></div>
                 <h3 class="card-title">Live Statistics</h3>
                 <p class="card-desc">Generate real-time data including player counts, confidence intervals, and processing framerates.</p>
             </div>
-
             <div class="feature-card">
                 <div class="icon-box"><i class="fas fa-bolt"></i></div>
                 <h3 class="card-title">Zero Latency Upload</h3>
@@ -613,19 +295,15 @@
             </div>
         </div>
     </section>
-
-    <!-- How it works -->
     <section id="how-it-works" class="steps-section">
-        <div class="section-header">
-            <h2 class="section-title">How It Works</h2>
-        </div>
+        <div class="section-header"><h2 class="section-title">How It Works</h2></div>
         <div class="steps-container">
             <div class="step-item">
                 <div class="step-number">01</div>
                 <div class="step-content">
                     <div class="step-icon"><i class="fas fa-file-video"></i></div>
                     <h3>Upload Video</h3>
-                    <p style="color: var(--text-muted); font-size: 0.9rem;">Select any MP4, AVI, or WebM football clip.</p>
+                    <p style="color:var(--text-muted);font-size:0.96rem;">Select any MP4, AVI, or WebM football clip.</p>
                 </div>
             </div>
             <div class="step-item">
@@ -633,7 +311,7 @@
                 <div class="step-content">
                     <div class="step-icon"><i class="fas fa-cogs"></i></div>
                     <h3>AI Processing</h3>
-                    <p style="color: var(--text-muted); font-size: 0.9rem;">The model scans frames to identify entities.</p>
+                    <p style="color:var(--text-muted);font-size:0.96rem;">The model scans frames to identify entities.</p>
                 </div>
             </div>
             <div class="step-item">
@@ -641,13 +319,11 @@
                 <div class="step-content">
                     <div class="step-icon"><i class="fas fa-download"></i></div>
                     <h3>Export Data</h3>
-                    <p style="color: var(--text-muted); font-size: 0.9rem;">View the 2D simulation and download the result.</p>
+                    <p style="color:var(--text-muted);font-size:0.96rem;">View the 2D simulation and download the result.</p>
                 </div>
             </div>
         </div>
     </section>
-
-    <!-- Footer -->
     <footer>
         <div class="footer-content">
             <div class="footer-brand">
@@ -672,6 +348,5 @@
             &copy; 2025 Pitch2D Analytics. All rights reserved.
         </div>
     </footer>
-
 </body>
 </html>
