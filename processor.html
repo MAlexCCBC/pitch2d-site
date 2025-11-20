@@ -1,9 +1,19 @@
-const formData = new FormData();
-formData.append("test", "1");
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Football Analysis</title>
+</head>
+<body>
+    <script>
+        const formData = new FormData();
+        formData.append("test", "1");
 
-fetch("https://7e3fdf9aaced.ngrok-free.app/process", {
-    method: "POST",
-    body: formData
-})
-.then(res => res.text())
-.then(console.log);
+        fetch("https://7e3fdf9aaced.ngrok-free.app/process", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.text())
+        .then(console.log);
+    </script>
+</body>
+</html>
