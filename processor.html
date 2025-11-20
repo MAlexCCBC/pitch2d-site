@@ -1,4 +1,9 @@
+const formData = new FormData();
+formData.append("test", "1");
+
 fetch("https://7e3fdf9aaced.ngrok-free.app/process", {
     method: "POST",
     body: formData
 })
+.then(res => res.text())
+.then(console.log);
