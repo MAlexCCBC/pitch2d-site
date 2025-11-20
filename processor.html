@@ -378,7 +378,7 @@
                 progressSection.classList.remove('active');
             });
 
-            xhr.open('POST', 'https://2817bde7d11f.ngrok-free.app/process');
+            xhr.open('POST', 'https://a6885164d1ef.ngrok-free.app/process');
             xhr.send(formData);
         }
 
@@ -389,7 +389,7 @@
                     return;
                 }
 
-                fetch(`https://2817bde7d11f.ngrok-free.app/status/${currentJobId}`)
+                fetch(`https://a6885164d1ef.ngrok-free.app/status/${currentJobId}`)
                     .then(res => res.json())
                     .then(data => {
                         queuePosition.textContent = data.queue_position || 0;
@@ -455,7 +455,7 @@
         });
 
         document.getElementById('confirmYes').addEventListener('click', () => {
-            fetch(`https://2817bde7d11f.ngrok-free.app/cancel/${currentJobId}`, { method: 'POST' }).catch(() => {});
+            fetch(`https://a6885164d1ef.ngrok-free.app/cancel/${currentJobId}`, { method: 'POST' }).catch(() => {});
             warningModal.classList.remove('active');
             window.location.href = 'index.html';
         });
