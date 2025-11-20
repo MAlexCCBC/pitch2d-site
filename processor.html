@@ -1,19 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>AI Football Analysis</title>
+    <meta charset="UTF-8">
+    <title>Test Processor</title>
 </head>
 <body>
+    <button id="sendBtn">Trimite</button>
+    <div id="result"></div>
     <script>
-        const formData = new FormData();
-        formData.append("test", "1");
+        document.getElementById("sendBtn").onclick = function() {
+            const formData = new FormData();
+            formData.append("test", "1");
 
-        fetch("https://7e3fdf9aaced.ngrok-free.app/process", {
-            method: "POST",
-            body: formData
-        })
-        .then(res => res.text())
-        .then(console.log);
+            fetch("https://7e3fdf9aaced.ngrok-free.app/process", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.text())
+            .then(text => {
+                document.getElementById("result").innerText = text;
+            })
+            .catch(err => {
+                document.getElementById("result").innerText = "Eroare: " + err;
+            });
+        }
     </script>
 </body>
 </html>
